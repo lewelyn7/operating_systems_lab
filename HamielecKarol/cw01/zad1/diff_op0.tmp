@@ -1,0 +1,14 @@
+0a1
+> jjj kkk
+2,3c3
+< bbb ccc
+< ddd
+---
+> fff ccc
+5,7c5,6
+< hhh iii
+< ela
+< ms
+---
+> bbb ggg
+> kasia bs

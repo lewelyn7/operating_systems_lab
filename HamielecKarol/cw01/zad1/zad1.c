@@ -1,22 +1,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <zad1.h>
 
 #define FILE_LENGTH 25
 #define COMMAND_SIZE 256
 
-    struct main_block_arr{
-        int size;
-        int idx;
-        struct edit_block_arr *arr;
-    };
 
-    struct edit_block_arr{
-        char * file1;
-        char * file2;        
-        int size;
-        char ** edit_ops;
-    };
 
     struct main_block_arr create_main_arr(int size){
         struct  main_block_arr main_arr;
@@ -82,6 +72,9 @@
         fseek (f, 0, SEEK_SET);
         return op_counter;
     }
+    int get_edit_operations(struct main_block_arr starr, int id){
+        return starr.arr[id].size;
+    }
     struct main_block_arr fill_with_data(struct main_block_arr starr){
     
         for(int i = 0; i <= starr.idx; i++){
@@ -129,12 +122,10 @@
         }
         return starr;
     }
+    void remove_edit_block(struct   main_block_arr starr, int id){
+        free(starr.arr[id].edit_ops);
+    }
+    void remove_edit_ops(struct edit_block_arr barr, int id){
+        free(barr.edit_ops[id]);
+    }
 
-int main(int argc, char** argv){
-    struct main_block_arr starr = create_main_arr(argc/2);
-    starr = define_files_seq(argv + 1, starr);
-    print_files(starr);
-    compare(starr);
-    fill_with_data(starr);
-    
-}

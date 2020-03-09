@@ -2,7 +2,7 @@ static:
 	make clean
 	gcc -Wall -c -g -I . zad1.c
 	ar crs libzad1.a zad1.o
-	gcc -Wall main.c -o main -L. -lzad1
+	gcc -Wall main.c -g -o main -L. -lzad1
 
 dynamic:
 	make clean

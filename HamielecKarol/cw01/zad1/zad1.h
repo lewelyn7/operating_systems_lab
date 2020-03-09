@@ -23,3 +23,5 @@ struct edit_block_arr{
     void remove_edit_ops(struct edit_block_arr barr, int id);
 
 #endif
+//0x0000555555555616
+//run create_table 1 compare_pairs a.txt:b.txt

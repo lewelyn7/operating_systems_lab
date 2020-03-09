@@ -122,7 +122,7 @@
         }
         return starr;
     }
-    void remove_edit_block(struct   main_block_arr starr, int id){
+    void remove_edit_block(struct main_block_arr starr, int id){
         free(starr.arr[id].edit_ops);
     }
     void remove_edit_ops(struct edit_block_arr barr, int id){

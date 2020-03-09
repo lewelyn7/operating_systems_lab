@@ -24,5 +24,5 @@ struct edit_block_arr{
 
 #endif
 //0x0000555555555616
-//run create_table 1 compare_pairs a.txt:b.txt
-//run create_table 2 compare_pairs a.txt:b.txt c.txt:d.txt remove_block 0
+//run create_table 1 compare_pairs dlugi1.txt:dlugi2.txt
+//run create_table 2 compare_pairs a.txt:b.txt c.txt:d.txt compare_pairs e.txt:f.txt

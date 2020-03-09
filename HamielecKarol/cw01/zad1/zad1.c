@@ -27,9 +27,14 @@
             int i = 0;
             for(;i < main_arr->size; i++){
                 if(main_arr->arr[i].file1 == NULL){
+                    i++;
                     break;
                 }
-                printf("table is too small");
+
+            }
+            i--; 
+            if(main_arr->arr[i].file1 != NULL){
+                printf("cant define file seq table is too small");
                 return;
             }
             main_arr->arr[i].size = 0;
@@ -45,14 +50,17 @@
     void compare(struct main_block_arr *starr){
         char * command = calloc(COMMAND_SIZE, sizeof(char));
         char str_number[5];
-        for(int i = 0; i <= starr->idx; i++){
+        for(int i = 0; i <= starr->size; i++){
+            if(starr->arr[i].file1 == NULL){
+                continue;
+            }
             for(int i = 0; i < COMMAND_SIZE; i++) command[i] = 0;
             strcpy(command, "diff ");
             strcat(command, starr->arr[i].file1);
             strcat(command, " ");
             strcat(command, starr->arr[i].file2);
             strcat(command, " > ");
-            strcat(command, "diff_op");
+            strcat(command, "./tmp/diff_op");
             sprintf(str_number, "%d", i);        
             strcat(command, str_number);        
             strcat(command, ".tmp");        
@@ -87,7 +95,7 @@
     
             char *fname = (char*) calloc(FILE_LENGTH, sizeof(char));
             char str_number[5];        
-            strcat(fname, "diff_op");
+            strcat(fname, "./tmp/diff_op");
             sprintf(str_number, "%d", pair_id);        
             strcat(fname, str_number);        
             strcat(fname, ".tmp"); 

@@ -1,5 +1,3 @@
- #define DLL
-
 #ifdef DLL
 #include <dlfcn.h>
 #endif
@@ -71,7 +69,7 @@ int main(int argc, char** argv){
     FILE * freport;
     freport = fopen("raport2.txt", "a");
 
-    char ** files_seq;
+    char ** files_seq = NULL;
     char fnames[128];
     int table_size;
     for(int i = 1; i < argc; i++){
@@ -81,6 +79,7 @@ int main(int argc, char** argv){
             i++;
             sscanf(argv[i], "%d", &table_size);
             starr = create_main_arr(table_size);
+            if(files_seq != NULL)free(files_seq);
             files_seq = (char**) calloc(table_size*2, sizeof(char*));
             for(int i = 0; i < table_size*2; i++){
                 files_seq[i] = (char*) calloc(64, sizeof(char));

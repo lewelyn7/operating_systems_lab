@@ -4,16 +4,11 @@ static:
 	ar crs libzad1.a zad1.o
 	gcc -Wall main.c -g -o main -L. -lzad1
 
-dynamic:
+shared:
 	make clean
 	gcc -Wall -fPIC -c -I . zad1.c
 	gcc -Wall -shared -fPIC -o libzad1.so zad1.o
 	gcc main.c -Wall -o main -L. -lzad1 -Wl,-rpath=`pwd`
-dll:
-	make clean
-	gcc -Wall -g -fPIC -I . -c zad1.c -o zad1.o 
-	gcc -Wl,-rpath=. -fPIC -shared -o libzad1.so zad1.o 	
-	gcc -Wall -g -fPIC -I . -ldl -L. -o main main.c -D DYNAMIC
 clean:
 	rm -f *.o *.a *.so main
 test:

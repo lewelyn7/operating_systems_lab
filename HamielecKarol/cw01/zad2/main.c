@@ -1,4 +1,4 @@
- #define DLL
+
 
 #ifdef DLL
 #include <dlfcn.h>

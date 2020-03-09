@@ -14,14 +14,15 @@ struct edit_block_arr{
     char ** edit_ops;
 };
 
-    struct main_block_arr create_main_arr(int size);
-    struct main_block_arr define_files_seq(char** files_seq, struct main_block_arr main_arr);
-    struct main_block_arr compare(struct main_block_arr starr);
-    int get_edit_operations(struct main_block_arr starr, int id);
-    struct main_block_arr fill_with_data(struct main_block_arr starr);
-    void remove_edit_block(struct   main_block_arr starr, int id);
-    void remove_edit_ops(struct edit_block_arr barr, int id);
+    struct main_block_arr* create_main_arr(int size);
+    void define_files_seq(char** files_seq, struct main_block_arr* main_arr, int files_number);
+    void compare(struct main_block_arr* starr);
+    int get_edit_operations(struct main_block_arr* starr, int id);
+    int fill_with_data(struct main_block_arr* starr, int pair_id);
+    void remove_edit_block(struct   main_block_arr *starr, int id);
+    void remove_edit_ops(struct main_block_arr *starr, int bid, int id);
 
 #endif
 //0x0000555555555616
 //run create_table 1 compare_pairs a.txt:b.txt
+//run create_table 2 compare_pairs a.txt:b.txt c.txt:d.txt remove_block 0

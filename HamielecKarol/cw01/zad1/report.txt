@@ -1,0 +1,18 @@
+
+operation: create_table
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+
+operation: compare_pairs
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+
+operation: save block  a.txt:b.txt
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+

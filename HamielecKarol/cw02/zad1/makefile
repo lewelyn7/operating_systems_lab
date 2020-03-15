@@ -7,3 +7,6 @@ test:
 	cat dane
 	./zad1 sort dane 10 3 lib
 	cat dane
+
+clean:
+	rm zad1 dane*

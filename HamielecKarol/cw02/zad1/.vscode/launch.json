@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["generate", "dane", "10", "4", "lib"],
+            "args": ["generate", "dane", "5", "5", "sys"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

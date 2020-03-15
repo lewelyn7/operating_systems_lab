@@ -10,3 +10,9 @@ real time: 10.660000
 user time: 0.710000 
 system time: 9.030000 
 
+
+operation: generate lib bufsize: 5000 record_cnt: 5000
+real time: 10.590000 
+user time: 0.650000 
+system time: 9.030000 
+

@@ -2,10 +2,11 @@
 dirs=`find ./HamielecKarol -name cw* | tail -1`
 lastdir=`basename $dirs`
 number=${lastdir: -2}
-if [ 9 > $number ]; then
-        newdircw="cw0$(($number + 1))"
+number=$(($number + 1))
+if [ $number -gt 9 ]; then
+        newdircw="cw$number"
 else
-        newdircw="cw$(($number + 1))"
+        newdircw="cw0$number"
 fi
 
 echo $newdircw

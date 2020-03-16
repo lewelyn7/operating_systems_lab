@@ -1,9 +1,10 @@
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <ftw.h>
-
+#include <sys/sysmacros.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -47,7 +48,6 @@ int match(time_t xtime, int arg){
 
 
 void find(struct config cfg){
-    time_t now = time(NULL);
     DIR* direk = opendir(cfg.start_point);
     if(direk == NULL){
         printf("blad otwarcia kataogu");
@@ -123,23 +123,22 @@ void find(struct config cfg){
     }
     closedir(direk);
 }
-int find_nftw_helper(const char * pathfull, int xdint, struct stat * buf_stat, FTW * ftw){
+int find_nftw_helper(const char * pathfull, const struct stat * buf_stat, int xdint,  struct FTW * ftw){
 
         if(cfg.maxdepth_on && ftw->level > cfg.maxdepth){
             return 0;
         }
 
 
-        time_t now = time(NULL);
         struct tm *ts;
         char buff[80];
 
        if(cfg.atime_on && !match(buf_stat->st_atime, cfg.atime)){
-            return;
+            return 0;
 
         }
         if(cfg.mtime_on && !match(buf_stat->st_mtime, cfg.mtime)){
-            return;
+            return 0;
 
         }
         printf("%s %d", pathfull, (int)buf_stat->st_nlink);
@@ -161,7 +160,7 @@ int find_nftw_helper(const char * pathfull, int xdint, struct stat * buf_stat, F
         }
         printf(" %d ", (int)buf_stat->st_size);
 
-        ts = lotime(&buf_stat->st_atime);
+        ts = localtime(&buf_stat->st_atime);
         strftime(buff, sizeof(buff), " %Y-%m-%d %H:%M:%S ", ts);
         printf(" %s ", buff);
 
@@ -170,10 +169,9 @@ int find_nftw_helper(const char * pathfull, int xdint, struct stat * buf_stat, F
         printf(" %s ", buff);
 
         printf("\r\n");
- 
+        return 0;
 }
 void find_nftw(struct config cfg){
-    time_t now = time(NULL);
     DIR* direk = opendir(cfg.start_point);
     if(direk == NULL){
         printf("blad otwarcia kataogu");

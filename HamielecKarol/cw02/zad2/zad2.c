@@ -156,17 +156,6 @@ int main(int argc, char** argv){
             
         }else{
 
-            //find last "/"
-            // char * jump_pointer = argv[0];
-            // char * slash_pointer;
-            // while(jump_pointer != NULL){
-            //     slash_pointer = jump_pointer;
-            //     jump_pointer = strchr(jump_pointer+1, '/');
-            // }
-            // slash_pointer++;
-            // *slash_pointer = '\0';
-
-            // strcpy(cfg.start_point, argv[0]);
             if(argv[i][0] == '/'){
                 strcpy(cfg.start_point, argv[i]);
             }else{

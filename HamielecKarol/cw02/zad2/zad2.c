@@ -45,21 +45,28 @@ void find(struct config cfg){
         if(S_ISDIR(buf_stat.st_mode)){
             printf(" dir ");
         }else if(S_ISCHR(buf_stat.st_mode)){
-            printf(" chr ");
+            printf(" char dev ");
         }else if(S_ISBLK(buf_stat.st_mode)){
-            printf(" blk ");
+            printf(" block dev ");
         }else if(S_ISREG(buf_stat.st_mode)){
-            printf(" reg ");           
+            printf(" file ");           
         }else if(S_ISFIFO(buf_stat.st_mode)){
             printf(" fifo ");           
         }else if(S_ISLNK(buf_stat.st_mode)){
-            printf(" sym ");           
+            printf(" slink ");           
+        }else if(S_ISSOCK(buf_stat.st_mode)){
+            printf(" sock ");           
         }
         printf(" %d ", (int)buf_stat.st_size);
+
+        ts = localtime(&buf_stat.st_atime);
+        strftime(buff, sizeof(buff), " %a %Y-%m-%d %H:%M:%S %Z ", ts);
+        printf(" %s ", buff);
 
         ts = localtime(&buf_stat.st_mtime);
         strftime(buff, sizeof(buff), " %a %Y-%m-%d %H:%M:%S %Z ", ts);
         printf(" %s ", buff);
+
         printf("\r\n");
         curr_rec = readdir(direk);
     }
@@ -107,9 +114,14 @@ int main(int argc, char** argv){
             // *slash_pointer = '\0';
 
             // strcpy(cfg.start_point, argv[0]);
-            getcwd(cfg.start_point, 512);
-            strcat(cfg.start_point, "/");
-            strcat(cfg.start_point, argv[i]);
+            if(argv[i][0] == '/'){
+                strcpy(cfg.start_point, argv[i]);
+            }else{
+                getcwd(cfg.start_point, 512);
+                strcat(cfg.start_point, "/");
+                strcat(cfg.start_point, argv[i]);
+            }
+
             strcat(cfg.start_point, "/");
             chdir(cfg.start_point);
             getcwd(cfg.start_point, 512);

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["copy","tmp4", "tmp4sys", "10000", "4", "sys"],
+            "args": ["copy", "tmp4", "tmp4lib", "100", "4", "lib"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

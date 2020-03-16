@@ -61,7 +61,7 @@ void write_report(FILE * fptr, char* operation, struct timestruct tmstr){
 char* getter(FILE * file,int buffer_size, int idx){
     char * buffer = (char*) calloc(buffer_size, sizeof(char));
     fseek(file, buffer_size*idx, SEEK_SET);
-    fgets(buffer, buffer_size,file);
+    fread(buffer,sizeof(char), buffer_size,file);
     return buffer;
 }
 
@@ -123,8 +123,8 @@ void swap_strings_sys(int file, int id1, int id2, int buffer_size){
     free(tmp2);
 }
 
-int compare_strings(char* str1, char* str2){
-    int res = strcmp(str1, str2);
+int compare_strings(char* str1, char* str2, int buffer_size){
+    int res = strncmp(str1, str2, buffer_size);
     free(str1);
     free(str2);
     return res;
@@ -141,9 +141,9 @@ void quicksort(FILE * file, int first, int last, int buffer_size)
         j = last;
         while (i < j)
         {
-            while (compare_strings(getter(file,buffer_size, i),getter(file,buffer_size, pivot)) <= 0 && i < last)
+            while (compare_strings(getter(file,buffer_size, i),getter(file,buffer_size, pivot), buffer_size) <= 0 && i < last)
                 i++;
-            while (compare_strings(getter(file,buffer_size,j), getter(file,buffer_size,pivot)) > 0)
+            while (compare_strings(getter(file,buffer_size,j), getter(file,buffer_size,pivot), buffer_size) > 0)
                 j--;
             if (i < j)
             {
@@ -166,9 +166,9 @@ void quicksort_sys(int file, int first, int last, int buffer_size)
         j = last;
         while (i < j)
         {
-            while (compare_strings(getter_sys(file,buffer_size, i),getter_sys(file,buffer_size, pivot)) <= 0 && i < last)
+            while (compare_strings(getter_sys(file,buffer_size, i),getter_sys(file,buffer_size, pivot), buffer_size) <= 0 && i < last)
                 i++;
-            while (compare_strings(getter_sys(file,buffer_size,j), getter_sys(file,buffer_size,pivot)) > 0)
+            while (compare_strings(getter_sys(file,buffer_size,j), getter_sys(file,buffer_size,pivot), buffer_size) > 0)
                 j--;
             if (i < j)
             {
@@ -314,7 +314,7 @@ void copy_lib(char* fname1, char * fname2, int buffer_size, int record_cnt){
         FILE * file2;
         char * buffer = (char*) calloc(buffer_size, sizeof(char));
 
-        file1 = fopen("tmp1", "r");
+        file1 = fopen(fname1, "r");
         file2 = fopen(fname2, "w"); 
         if(file1 == NULL || file2 == NULL){
             printf("blad otwarcia pliku");

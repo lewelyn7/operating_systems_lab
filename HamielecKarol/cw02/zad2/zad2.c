@@ -33,6 +33,12 @@ int match(time_t xtime, int arg){
         }else{
             return 0;
         }
+    }else if(arg == 0){
+        if(days == 0){
+            return 1;
+        }else{
+            return 0;
+        }
     }else{
         if(days >= arg){
             return 1;

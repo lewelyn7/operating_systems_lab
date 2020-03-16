@@ -37,6 +37,12 @@ int match(time_t xtime, int arg){
         }else{
             return 0;
         }
+    }else if(arg == 0){
+        if(days == 0){
+            return 1;
+        }else{
+            return 0;
+        }
     }else{
         if(days >= arg){
             return 1;
@@ -46,83 +52,6 @@ int match(time_t xtime, int arg){
     }
 }
 
-
-void find(struct config cfg){
-    DIR* direk = opendir(cfg.start_point);
-    if(direk == NULL){
-        printf("blad otwarcia kataogu");
-        exit(-1);
-    }
-
-    struct dirent* curr_rec;
-    struct stat buf_stat;
-    char pathfull[256];
-    
-    struct tm *ts;
-    char buff[80];
-
-
-    curr_rec = readdir(direk);
-    while(curr_rec != NULL){
-        strcpy(pathfull, cfg.start_point);
-        strcat(pathfull, (curr_rec->d_name));
-        if(lstat(pathfull, &buf_stat) != 0){
-            printf("blad czytania pliku");
-            exit(-1);
-        }
-        if(cfg.atime_on && !match(buf_stat.st_atime, cfg.atime)){
-            curr_rec = readdir(direk);           
-            continue;
-
-        }
-        if(cfg.mtime_on && !match(buf_stat.st_mtime, cfg.mtime)){
-            curr_rec = readdir(direk);
-            continue;
-
-        }
-        printf("%s %d", pathfull, (int)buf_stat.st_nlink);
-        
-        if(S_ISLNK(buf_stat.st_mode)){
-            printf(" slink ");           
-        }else if(S_ISDIR(buf_stat.st_mode)){
-            printf(" dir ");
-        }else if(S_ISCHR(buf_stat.st_mode)){
-            printf(" char dev ");
-        }else if(S_ISBLK(buf_stat.st_mode)){
-            printf(" block dev ");
-        }else if(S_ISREG(buf_stat.st_mode)){
-            printf(" file ");           
-        }else if(S_ISFIFO(buf_stat.st_mode)){
-            printf(" fifo ");           
-        }else if(S_ISSOCK(buf_stat.st_mode)){
-            printf(" sock ");           
-        }
-        printf(" %d ", (int)buf_stat.st_size);
-
-        ts = localtime(&buf_stat.st_atime);
-        strftime(buff, sizeof(buff), " %Y-%m-%d %H:%M:%S ", ts);
-        printf(" %s ", buff);
-
-        ts = localtime(&buf_stat.st_mtime);
-        strftime(buff, sizeof(buff), " %Y-%m-%d %H:%M:%S ", ts);
-        printf(" %s ", buff);
-
-        printf("\r\n");
-        if(S_ISDIR(buf_stat.st_mode) && !S_ISLNK(buf_stat.st_mode) && strcmp(curr_rec->d_name, ".") && strcmp(curr_rec->d_name, "..")){
-            if( !cfg.maxdepth_on  || (cfg.maxdepth_on && cfg.maxdepth > 0)){
-
-                
-                struct config cfg2 = cfg;
-                cfg2.maxdepth--;
-                strcpy(cfg2.start_point, pathfull);
-                strcat(cfg2.start_point, "/");
-                find(cfg2);
-            }
-        }
-        curr_rec = readdir(direk);
-    }
-    closedir(direk);
-}
 int find_nftw_helper(const char * pathfull, const struct stat * buf_stat, int xdint,  struct FTW * ftw){
 
         if(cfg.maxdepth_on && ftw->level > cfg.maxdepth){
@@ -233,5 +162,5 @@ int main(int argc, char** argv){
         
         }
     }
-    find(cfg);
+    find_nftw(cfg);
 }

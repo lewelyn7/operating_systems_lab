@@ -149,17 +149,3 @@ real time: 0.480000
 user time: 0.170000 
 system time: 0.310000 
 
-operation: generate lib bufsize: 1 record_cnt: 100000
-real time: 0.050000 
-user time: 0.000000 
-system time: 0.030000 
-
-operation: copy sys bufsize: 1 record_cnt: 100000
-real time: 0.200000 
-user time: 0.020000 
-system time: 0.180000 
-
-operation: copy lib bufsize: 1 record_cnt: 100000
-real time: 0.010000 
-user time: 0.000000 
-system time: 0.000000 

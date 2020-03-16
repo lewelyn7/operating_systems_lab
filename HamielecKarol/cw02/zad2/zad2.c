@@ -29,8 +29,9 @@ void find(struct config cfg){
     struct dirent* curr_rec;
     struct stat buf_stat;
     char pathfull[256];
+    
     struct tm *ts;
-    char buf[80];
+    char buff[80];
 
     curr_rec = readdir(direk);
     while(curr_rec != NULL){
@@ -40,7 +41,25 @@ void find(struct config cfg){
             printf("blad czytania pliku");
             exit(-1);
         }
-        printf("%s %d", pathfull, (int)buf_stat.st_size);
+        printf("%s %d", pathfull, (int)buf_stat.st_nlink);
+        if(S_ISDIR(buf_stat.st_mode)){
+            printf(" dir ");
+        }else if(S_ISCHR(buf_stat.st_mode)){
+            printf(" chr ");
+        }else if(S_ISBLK(buf_stat.st_mode)){
+            printf(" blk ");
+        }else if(S_ISREG(buf_stat.st_mode)){
+            printf(" reg ");           
+        }else if(S_ISFIFO(buf_stat.st_mode)){
+            printf(" fifo ");           
+        }else if(S_ISLNK(buf_stat.st_mode)){
+            printf(" sym ");           
+        }
+        printf(" %d ", (int)buf_stat.st_size);
+
+        ts = localtime(&buf_stat.st_mtime);
+        strftime(buff, sizeof(buff), " %a %Y-%m-%d %H:%M:%S %Z ", ts);
+        printf(" %s ", buff);
         printf("\r\n");
         curr_rec = readdir(direk);
     }

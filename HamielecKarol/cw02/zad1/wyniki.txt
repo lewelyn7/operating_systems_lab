@@ -1,0 +1,150 @@
+
+operation: generate lib bufsize: 1 record_cnt: 10000
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+operation: copy sys bufsize: 1 record_cnt: 10000
+real time: 0.020000 
+user time: 0.000000 
+system time: 0.020000 
+
+operation: copy lib bufsize: 1 record_cnt: 10000
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+operation: sort sys bufsize: 1 record_cnt: 10000
+real time: 5.280000 
+user time: 2.760000 
+system time: 2.500000 
+
+operation: sort lib bufsize: 1 record_cnt: 10000
+real time: 67.250000 
+user time: 38.660000 
+system time: 28.520000 
+
+operation: generate lib bufsize: 4 record_cnt: 10000
+real time: 0.010000 
+user time: 0.000000 
+system time: 0.010000 
+
+operation: copy sys bufsize: 4 record_cnt: 10000
+real time: 0.030000 
+user time: 0.000000 
+system time: 0.010000 
+
+operation: copy lib bufsize: 4 record_cnt: 10000
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+operation: sort sys bufsize: 4 record_cnt: 10000
+real time: 0.680000 
+user time: 0.290000 
+system time: 0.390000 
+
+operation: sort lib bufsize: 4 record_cnt: 10000
+real time: 66.060000 
+user time: 34.660000 
+system time: 31.330000 
+
+operation: generate lib bufsize: 512 record_cnt: 5000
+real time: 1.060000 
+user time: 0.050000 
+system time: 0.920000 
+
+operation: copy sys bufsize: 512 record_cnt: 5000
+real time: 0.020000 
+user time: 0.000000 
+system time: 0.010000 
+
+operation: copy lib bufsize: 512 record_cnt: 5000
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+operation: sort sys bufsize: 512 record_cnt: 5000
+real time: 0.330000 
+user time: 0.150000 
+system time: 0.180000 
+
+operation: sort lib bufsize: 512 record_cnt: 5000
+real time: 33.810000 
+user time: 17.430000 
+system time: 16.340000 
+
+operation: generate lib bufsize: 1024 record_cnt: 5000
+real time: 2.080000 
+user time: 0.140000 
+system time: 1.750000 
+
+operation: copy sys bufsize: 1024 record_cnt: 5000
+real time: 0.020000 
+user time: 0.000000 
+system time: 0.010000 
+
+operation: copy lib bufsize: 1024 record_cnt: 5000
+real time: 0.000000 
+user time: 0.000000 
+system time: 0.000000 
+
+operation: sort sys bufsize: 1024 record_cnt: 5000
+real time: 0.340000 
+user time: 0.120000 
+system time: 0.200000 
+
+operation: sort lib bufsize: 1024 record_cnt: 5000
+real time: 35.000000 
+user time: 17.360000 
+system time: 17.600000 
+
+operation: generate lib bufsize: 4096 record_cnt: 5000
+real time: 8.320000 
+user time: 0.490000 
+system time: 7.100000 
+
+operation: copy sys bufsize: 4096 record_cnt: 5000
+real time: 0.020000 
+user time: 0.000000 
+system time: 0.020000 
+
+operation: copy lib bufsize: 4096 record_cnt: 5000
+real time: 0.010000 
+user time: 0.000000 
+system time: 0.010000 
+
+operation: sort sys bufsize: 4096 record_cnt: 5000
+real time: 0.370000 
+user time: 0.190000 
+system time: 0.160000 
+
+operation: sort lib bufsize: 4096 record_cnt: 5000
+real time: 42.620000 
+user time: 20.830000 
+system time: 21.730000 
+
+operation: generate lib bufsize: 8192 record_cnt: 5000
+real time: 17.300000 
+user time: 1.260000 
+system time: 14.520000 
+
+operation: copy sys bufsize: 8192 record_cnt: 5000
+real time: 0.030000 
+user time: 0.000000 
+system time: 0.030000 
+
+operation: copy lib bufsize: 8192 record_cnt: 5000
+real time: 0.030000 
+user time: 0.010000 
+system time: 0.020000 
+
+operation: sort sys bufsize: 8192 record_cnt: 5000
+real time: 0.460000 
+user time: 0.180000 
+system time: 0.260000 
+
+operation: sort lib bufsize: 8192 record_cnt: 5000
+real time: 67.750000 
+user time: 32.650000 
+system time: 35.000000 

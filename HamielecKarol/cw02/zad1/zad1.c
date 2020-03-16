@@ -47,13 +47,13 @@ void write_report(FILE * fptr, char* operation, struct timestruct tmstr){
     fprintf(fptr,"\r\noperation: %s\r\n", operation);
     fprintf(fptr,"real time: %f \r\n", calc_elapsed(tmstr.clock_start, tmstr.clock_end));
     fprintf(fptr,"user time: %f \r\n", calc_elapsed(tmstr.tms_start.tms_utime, tmstr.tms_end.tms_utime));
-    fprintf(fptr,"system time: %f \r\n\r\n", calc_elapsed(tmstr.tms_start.tms_stime, tmstr.tms_end.tms_stime));
+    fprintf(fptr,"system time: %f \r\n", calc_elapsed(tmstr.tms_start.tms_stime, tmstr.tms_end.tms_stime));
 
     if(DEBUG == 1){
         printf("\r\noperation: %s\r\n", operation);
         printf("real time: %F\r\n", calc_elapsed(tmstr.clock_start, tmstr.clock_end));
         printf("user time: %F\r\n", calc_elapsed(tmstr.tms_start.tms_utime, tmstr.tms_end.tms_utime));
-        printf("system time: %F\r\n\r\n", calc_elapsed(tmstr.tms_start.tms_stime, tmstr.tms_end.tms_stime));
+        printf("system time: %F\r\n", calc_elapsed(tmstr.tms_start.tms_stime, tmstr.tms_end.tms_stime));
     }
 }
 
@@ -66,6 +66,10 @@ char* getter(FILE * file,int buffer_size, int idx){
 }
 
 char* getter_sys(int file,int buffer_size, int idx){
+    if(file < 0){
+        printf("blad otwarcia pliku");
+        exit(-1);
+    }
     char * buffer = (char*) calloc(buffer_size, sizeof(char));
     lseek(file, buffer_size*idx, SEEK_SET);
     read(file, buffer, buffer_size);
@@ -95,6 +99,10 @@ void swap_strings(FILE * file, int id1, int id2, int buffer_size){
 }
 
 void swap_strings_sys(int file, int id1, int id2, int buffer_size){
+    if(file < 0){
+        printf("blad otwarcia pliku");
+        exit(-1);
+    }
     char * tmp1 = (char*) calloc(buffer_size, sizeof(char));
     char * tmp2 = (char*) calloc(buffer_size, sizeof(char));
     
@@ -184,6 +192,11 @@ void generate_lib(char * fname1, int buffer_size, int record_cnt){
         char byte_tmp;
 
         file1 = fopen(fname1, "w");
+        if(file1 == NULL){
+            printf("blad otwarcia pliku");
+            exit(-1);
+        }
+        
         FILE * rand_handler= fopen("/dev/random", "r");
 
         for(int j = 0; j < record_cnt; j++){
@@ -195,8 +208,8 @@ void generate_lib(char * fname1, int buffer_size, int record_cnt){
                 buffer[i] = byte_tmp;
             }
             // buffer[buffer_size-3] = '\r';
-            buffer[buffer_size-2] = '\r';
-            buffer[buffer_size-1] = '\n';
+            // buffer[buffer_size-2] = '\r';
+            // buffer[buffer_size-1] = '\n';
 
             fwrite(buffer, sizeof(char), buffer_size, file1);
         }
@@ -221,7 +234,11 @@ void generate_sys(char * fname1, int buffer_size, int record_cnt){
 
 
 
-        file1 = open(fname1, O_WRONLY|O_CREAT);
+        file1 = open(fname1, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+        if(file1 < 0){
+            printf("blad otwarcia pliku");
+            exit(-1);
+        }
         int rand_handler= open("/dev/random", O_RDONLY);
 
         for(int j = 0; j < record_cnt; j++){
@@ -233,8 +250,8 @@ void generate_sys(char * fname1, int buffer_size, int record_cnt){
                 buffer[i] = byte_tmp;
             }
             // buffer[buffer_size-3] = '\r';
-            buffer[buffer_size-2] = '\r';
-            buffer[buffer_size-1] = '\n';
+            // buffer[buffer_size-2] = '\r';
+            // buffer[buffer_size-1] = '\n';
 
             write(file1, buffer, buffer_size);
         }
@@ -256,6 +273,11 @@ void sort_lib(char * fname1, int buffer_size, int record_cnt){
 
         FILE * file1;
         file1 = fopen(fname1, "r+"); 
+        if(file1 == NULL){
+            printf("blad otwarcia pliku");
+            exit(-1);
+        }
+
         quicksort(file1, 0, record_cnt-1, buffer_size);
 
         tmstr = time_stop(tmstr);
@@ -270,6 +292,10 @@ void sort_sys(char* fname1, int buffer_size, int record_cnt){
 
     int file1;
     file1 = open(fname1, O_RDWR);
+    if(file1 < 0){
+        printf("blad otwarcia pliku");
+        exit(-1);
+    }
     quicksort_sys(file1, 0, record_cnt-1, buffer_size);
     
 
@@ -288,8 +314,12 @@ void copy_lib(char* fname1, char * fname2, int buffer_size, int record_cnt){
         FILE * file2;
         char * buffer = (char*) calloc(buffer_size, sizeof(char));
 
-        file1 = fopen(fname1, "r");
+        file1 = fopen("tmp1", "r");
         file2 = fopen(fname2, "w"); 
+        if(file1 == NULL || file2 == NULL){
+            printf("blad otwarcia pliku");
+            exit(-1);
+        }
 
         for(int i = 0; i < record_cnt; i++){
             fread(buffer, sizeof(char), buffer_size, file1);
@@ -315,7 +345,11 @@ void copy_sys(char* fname1, char * fname2, int buffer_size, int record_cnt){
         char * buffer = (char*) calloc(buffer_size, sizeof(char));
 
         file1 = open(fname1, O_RDONLY);
-        file2 = open(fname2, O_WRONLY); 
+        file2 = open(fname2, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR); 
+        if(file1 < 0 || file2 < 0){
+            printf("blad otwarcia pliku");
+            exit(-1);
+        }
 
         for(int i = 0; i < record_cnt; i++){
             read(file1, buffer,  buffer_size);
@@ -336,7 +370,11 @@ int main(int argc, char **argv){
     char fname1[FILENAME_LENGTH];
     char fname2[FILENAME_LENGTH];
 
-    reportfile = fopen("report.txt", "a");
+    reportfile = fopen("wyniki.txt", "a");
+    if(reportfile == NULL){
+        printf("blad otwarcia pliku");
+        exit(-1);
+    }
 
     int buffer_size;
     int record_cnt;
@@ -384,8 +422,12 @@ int main(int argc, char **argv){
             printf("blad parsowania");
             return 0;
         }
-
-        sort_lib(fname1, buffer_size, record_cnt);
+        
+        if(lib_switch){
+            sort_lib(fname1, buffer_size, record_cnt);           
+        }else{
+            sort_sys(fname1, buffer_size, record_cnt);
+        }
 
     }else if(!strcmp(argv[1], "copy")){
         if(argc != 7){

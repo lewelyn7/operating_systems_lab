@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <ftw.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -21,6 +23,7 @@ struct config{
     int maxdepth_on;
     char start_point[512];
 };
+struct config cfg;
 
 int match(time_t xtime, int arg){
     time_t now = time(NULL);
@@ -44,6 +47,7 @@ int match(time_t xtime, int arg){
 
 
 void find(struct config cfg){
+    time_t now = time(NULL);
     DIR* direk = opendir(cfg.start_point);
     if(direk == NULL){
         printf("blad otwarcia kataogu");
@@ -119,9 +123,67 @@ void find(struct config cfg){
     }
     closedir(direk);
 }
+int find_nftw_helper(const char * pathfull, int xdint, struct stat * buf_stat, FTW * ftw){
 
+        if(cfg.maxdepth_on && ftw->level > cfg.maxdepth){
+            return 0;
+        }
+
+
+        time_t now = time(NULL);
+        struct tm *ts;
+        char buff[80];
+
+       if(cfg.atime_on && !match(buf_stat->st_atime, cfg.atime)){
+            return;
+
+        }
+        if(cfg.mtime_on && !match(buf_stat->st_mtime, cfg.mtime)){
+            return;
+
+        }
+        printf("%s %d", pathfull, (int)buf_stat->st_nlink);
+        
+        if(S_ISLNK(buf_stat->st_mode)){
+            printf(" slink ");           
+        }else if(S_ISDIR(buf_stat->st_mode)){
+            printf(" dir ");
+        }else if(S_ISCHR(buf_stat->st_mode)){
+            printf(" char dev ");
+        }else if(S_ISBLK(buf_stat->st_mode)){
+            printf(" block dev ");
+        }else if(S_ISREG(buf_stat->st_mode)){
+            printf(" file ");           
+        }else if(S_ISFIFO(buf_stat->st_mode)){
+            printf(" fifo ");           
+        }else if(S_ISSOCK(buf_stat->st_mode)){
+            printf(" sock ");           
+        }
+        printf(" %d ", (int)buf_stat->st_size);
+
+        ts = lotime(&buf_stat->st_atime);
+        strftime(buff, sizeof(buff), " %Y-%m-%d %H:%M:%S ", ts);
+        printf(" %s ", buff);
+
+        ts = localtime(&buf_stat->st_mtime);
+        strftime(buff, sizeof(buff), " %Y-%m-%d %H:%M:%S ", ts);
+        printf(" %s ", buff);
+
+        printf("\r\n");
+ 
+}
+void find_nftw(struct config cfg){
+    time_t now = time(NULL);
+    DIR* direk = opendir(cfg.start_point);
+    if(direk == NULL){
+        printf("blad otwarcia kataogu");
+        exit(-1);
+    }
+    int flags = 0;
+    flags = FTW_DEPTH | FTW_PHYS;
+    nftw(cfg.start_point, &find_nftw_helper, 20, flags);
+}
 int main(int argc, char** argv){
-    struct config cfg;
     cfg.atime_on = 0;
     cfg.mtime_on = 0;
     cfg.maxdepth_on = 0;

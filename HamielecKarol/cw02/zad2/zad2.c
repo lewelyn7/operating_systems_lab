@@ -63,7 +63,7 @@ void find(struct config cfg){
     while(curr_rec != NULL){
         strcpy(pathfull, cfg.start_point);
         strcat(pathfull, (curr_rec->d_name));
-        if(stat(pathfull, &buf_stat) != 0){
+        if(lstat(pathfull, &buf_stat) != 0){
             printf("blad czytania pliku");
             exit(-1);
         }
@@ -78,7 +78,10 @@ void find(struct config cfg){
 
         }
         printf("%s %d", pathfull, (int)buf_stat.st_nlink);
-        if(S_ISDIR(buf_stat.st_mode)){
+        
+        if(S_ISLNK(buf_stat.st_mode)){
+            printf(" slink ");           
+        }else if(S_ISDIR(buf_stat.st_mode)){
             printf(" dir ");
         }else if(S_ISCHR(buf_stat.st_mode)){
             printf(" char dev ");
@@ -88,8 +91,6 @@ void find(struct config cfg){
             printf(" file ");           
         }else if(S_ISFIFO(buf_stat.st_mode)){
             printf(" fifo ");           
-        }else if(S_ISLNK(buf_stat.st_mode)){
-            printf(" slink ");           
         }else if(S_ISSOCK(buf_stat.st_mode)){
             printf(" sock ");           
         }
@@ -104,7 +105,7 @@ void find(struct config cfg){
         printf(" %s ", buff);
 
         printf("\r\n");
-        if(S_ISDIR(buf_stat.st_mode) && strcmp(curr_rec->d_name, ".") && strcmp(curr_rec->d_name, "..")){
+        if(S_ISDIR(buf_stat.st_mode) && !S_ISLNK(buf_stat.st_mode) && strcmp(curr_rec->d_name, ".") && strcmp(curr_rec->d_name, "..")){
             if( !cfg.maxdepth_on  || (cfg.maxdepth_on && cfg.maxdepth > 0)){
 
                 

@@ -1,0 +1,5 @@
+
+operation: copy sys bufsize: 1 record_cnt: 10000
+real time: 0.010000 
+user time: 0.000000 
+system time: 0.000000 

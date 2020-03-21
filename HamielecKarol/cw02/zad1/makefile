@@ -89,11 +89,11 @@ tests:
 	rm tmp*
 test:
 	make std
-	./zad1 generate tmp4 100000 512 lib
-	./zad1 copy tmp4 tmp4sys 100000 512 sys
-	./zad1 copy tmp4 tmp4lib 100000 512 lib
-	./zad1 sort tmp4sys 100000 512 sys
-	./zad1 sort tmp4lib 100000 512 lib	
+	./zad1 generate tmp4 1000 512 lib
+	./zad1 copy tmp4 tmp4sys 1000 512 sys
+	./zad1 copy tmp4 tmp4lib 1000 512 lib
+	./zad1 sort tmp4sys 1000 512 sys
+	./zad1 sort tmp4lib 1000 512 lib	
 clean:
 	rm zad1 dane* *tmp*
 

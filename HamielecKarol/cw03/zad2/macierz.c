@@ -1,3 +1,9 @@
+
+#define _BSD_SOURCE 
+#define _SVID_SOURCE 
+#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 
+#define _DEFAULT_SOURCE
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -9,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h> 
 #include <fcntl.h>
+#include <features.h>
 #define FILENAME_LEN 64
 
 struct config{
@@ -53,11 +60,15 @@ int file_len(FILE * file){
     rewind(file);
     return size;
 }
-void paste(FILE * file, int rown, int col_start, int col_end, int ** arr){
-    fseek(file, 0, SEEK_SET);
-    while(lockf(file->_fileno, F_TEST, file_len(file)) == -1){
+void paste(char * filename, int rown, int col_start, int col_end, int ** arr){
+
+    FILE *file = fopen(filename,"r+");
+    while(lockf(file->_fileno, F_TLOCK, file_len(file)) == -1){
         printf("czekam ");
     }
+    printf("blokuje %d\r\n", (int)getpid());
+
+    // lockf(file->_fileno, F_LOCK, file_len(file));
     
     char buff[256];
     char newbuff[256];
@@ -106,7 +117,13 @@ void paste(FILE * file, int rown, int col_start, int col_end, int ** arr){
         fgets(buff, 256, file);
     }
 
+    rewind(file);
+    fread(buff, 1, 4096,file);
+    printf("file:\r\n%s", buff);
+    printf("odblokuje %d\r\n", (int)getpid());
+    rewind(file);
     lockf(file->_fileno, F_ULOCK, file_len(file));
+    fclose(file);
 }
 
 int** load_matrix(FILE *file, int rows, int cols){
@@ -130,7 +147,7 @@ int** load_matrix(FILE *file, int rows, int cols){
 }
 
 //col_start inclusive; col_end exclusive
-void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, FILE *filec, float time_max){
+void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, char *filec, float time_max){
     clock_t time_start = time(NULL);
     printf("new proccess: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
     int **res = (int**)calloc(arows, sizeof(int*));
@@ -138,9 +155,7 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
 
 
     int ** a_matrix = load_matrix(filea, arows, acols);
-    print_matrix(a_matrix, arows, acols);
     int ** b_matrix = load_matrix(fileb, acols, bcols);
-    print_matrix(b_matrix, acols, bcols);
 
     int sum = 0;
 
@@ -158,7 +173,8 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
         }
         
     }
-
+    printf("result: \r\n");
+    print_matrix(res,arows,bcols);
     paste(filec, arows, col_start, col_end, res);
 
     for(int i = 0; i < bcols; i++) free(res[i]);
@@ -219,14 +235,13 @@ int main(int argc, char** argv){
     
     FILE * filea = fopen("a.txt", "r");
     FILE * fileb = fopen("b.txt", "r");
-    FILE * filec = fopen("c.txt", "r+");
 
     int acoln = 0;
     int arown = 0;
     int bcoln = 0;
     int brown = 0;
     
-    lockf(filea->_fileno, F_LOCK, file_len(file));
+    // lockf(filec->_fileno, F_LOCK, file_len(file));
 
     matrix_params(filea, &acoln, &arown);
     matrix_params(fileb, &bcoln, &brown);
@@ -243,16 +258,16 @@ int main(int argc, char** argv){
 
         child_pid = fork();
         if(child_pid == 0){
-            child_func(filea, arown, acoln, fileb, bcoln, (i)*cols_per_proc, (i+1)*cols_per_proc, filec, 10);
+            child_func(filea, arown, acoln, fileb, bcoln, (i)*cols_per_proc, (i+1)*cols_per_proc, "c.txt", 10);
 
         }
 
     }
 
-    int status;
+    int status = 0;
     do{
         child_pid = wait(&status);
-        printf("\r\nchild: %d returned %d\r\n", (int)child_pid, (int)status);
+        printf("\r\nchild: %d returned %d\r\n", (int)child_pid, WEXITSTATUS(status));
     }while(child_pid != -1);
     return 0;
 }

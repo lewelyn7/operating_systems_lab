@@ -54,7 +54,7 @@ void find(struct config cfg){
     int child_pid = fork();
     if(child_pid == 0){
         printf("PID: %d dir: %s\r\n", (int)getpid(), cfg.start_point);
-        execlp("ls", "-l", NULL);
+        execlp("ls", "ls", "-l", cfg.start_point, NULL);
     }
     wait(NULL);
     DIR* direk = opendir(cfg.start_point);

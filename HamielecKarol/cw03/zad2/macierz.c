@@ -229,7 +229,6 @@ void matrix_params(FILE *file, int * coln, int * rown){
 
 
 int main(int argc, char** argv){
-
     struct config cfg;
 
     if(argc != 5){
@@ -252,6 +251,10 @@ int main(int argc, char** argv){
     if(tasksf == NULL){
         printf("cant open tasks file");
     }
+
+    int k = 0;
+    char paste_cmds[64][64];
+    char kolejnytabxd[64][64];
     while(fgets(cfg.filea, FILENAME_LEN, file) != NULL){
         fgets(cfg.fileb, FILENAME_LEN, file);
         fgets(cfg.filec, FILENAME_LEN, file);
@@ -291,15 +294,21 @@ int main(int argc, char** argv){
         
         int cols_per_proc = bcoln / cfg.childsq;
         int last_extension = bcoln%cfg.childsq;
-
+        strcpy(paste_cmds[k], "");
+        strcpy(kolejnytabxd[k], cfg.filec);
         for(int i = 0; i < cfg.childsq-1; i++){
             //numer dziecka; plik a; plik b; plik c; col_start inclusive; col_end exclusive; time_max;
+            strcat(paste_cmds[k], cfg.filec);
+            char mamdosc[8];
+            sprintf(mamdosc, "%d", i);
+            strcat(paste_cmds[k], mamdosc);
+            strcat(paste_cmds[k], " ");
             fprintf(tasksf, "%d %s %s %s %d %d %f\n", i, cfg.filea, cfg.fileb, cfg.filec, (i)*cols_per_proc, (i+1)*cols_per_proc, cfg.time_max);
         }
         //last
         fprintf(tasksf, "%d %s %s %s %d %d %f\n", cfg.childsq-1, cfg.filea, cfg.fileb, cfg.filec, (cfg.childsq-1)*cols_per_proc, (cfg.childsq-1+1)*cols_per_proc+last_extension, cfg.time_max);
 
-
+        k++;
     }
     fclose(file);
     fclose(tasksf);
@@ -313,16 +322,26 @@ int main(int argc, char** argv){
             char to_str[8];
             sprintf(to_str, "%d", i);
             int stat;
-            execl("./child", "./child", to_str, "tmp_tasks.txt", NULL);
+            execl("./child", "./child", to_str, "tmp_tasks.txt", argv[4], NULL);
 
         }
 
     }
-
     int status = 0;
     do{
         child_pid = wait(&status);
         printf("\r\nchild: %d returned %d\r\n", (int)child_pid, WEXITSTATUS(status));
     }while(child_pid != -1);
+    
+    if(cfg.mode == 1){
+        for(int i = 0; i < k; i++){
+            int childpidkolejny = fork();
+            if(childpidkolejny == 0){
+                execl("./helper.sh", "./helper.sh", paste_cmds[i], kolejnytabxd[i], NULL);
+                // execlp("ls", "ls", NULL);
+                exit(0);
+            }
+        }
+    }
     return 0;
 }

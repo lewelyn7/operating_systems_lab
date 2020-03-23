@@ -22,6 +22,7 @@
 
 struct config{
     int my_id;
+    int task_id;
     char tasks[FILENAME_LEN];
     char filea[FILENAME_LEN];
     char fileb[FILENAME_LEN];
@@ -32,6 +33,8 @@ struct config{
     int col_start;
     int col_end;
 };
+struct config cfg;
+
 
 double calc_elapsed(clock_t start, clock_t end){
     double elap = ((double) (end - start)) / sysconf(_SC_CLK_TCK);
@@ -171,7 +174,28 @@ void paste(char * filename, int rown, int coln, int col_start, int col_end, int 
     lockf(file->_fileno, F_ULOCK, file_len(file));
     fclose(file);
 }
+void paste_ind(char * filename, int rown, int coln, int col_start, int col_end, int ** arr){
 
+    char buf[16];
+    sprintf(buf, "%d", cfg.task_id);
+    char buf2[64];
+    strcpy(buf2, filename);
+    strcat(buf2, buf);
+    FILE * file = fopen(buf2, "w");
+    for(int i = 0; i < rown; i++){
+        for(int j = col_start; j < col_end-1; j++){
+            sprintf(buf, "%d", arr[i][j]);
+            fputs(buf, file);
+            fputs(" ", file);
+        }
+        sprintf(buf, "%d", arr[i][col_end-1]);
+        fputs(buf, file);
+        fputs("\n", file);
+
+    }
+    fclose(file);
+
+}
 int** load_matrix(FILE *file, int rows, int cols){
     if(file == NULL){
         printf("plik nie otworzony");
@@ -220,8 +244,11 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
     }
     // printf("result: \r\n");
     // print_matrix(res,arows,bcols);
-    paste(filec, arows,bcols, col_start, col_end, res);
-
+    if(cfg.mode == 0){
+        paste(filec, arows,bcols, col_start, col_end, res);
+    }else if(cfg.mode == 1){
+        paste_ind(filec, arows,bcols, col_start, col_end, res);
+    }
     for(int i = 0; i < arows; i++) free(res[i]);
     free(res);
 
@@ -253,12 +280,11 @@ void matrix_params(FILE *file, int * coln, int * rown){
 
 }
 
-
 int main(int argc, char** argv){
 
-    struct config cfg;
+    
 
-    if(argc != 3){
+    if(argc != 4){
         printf("bledna ilosc argumentow");
         exit(-1);
     }
@@ -266,6 +292,7 @@ int main(int argc, char** argv){
 
     sscanf(argv[1], "%d", &cfg.my_id);
     sscanf(argv[2], "%s", cfg.tasks);
+    sscanf(argv[3], "%d", &cfg.mode);
 
 
     FILE * tasksf = fopen(cfg.tasks, "r+");
@@ -286,6 +313,7 @@ int main(int argc, char** argv){
             }
             int tmp;
             sscanf(buff, "%d", &tmp);
+            cfg.task_id = tmp;
             if(tmp != cfg.my_id && my_job_done == 0){
                 continue;
             }

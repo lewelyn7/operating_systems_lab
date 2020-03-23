@@ -7,7 +7,9 @@ cltest:
 
 test:
 	make std
-	make cltest
-	./macierz lista 3 5 5
+	./macierz lista 3 5 0
+test2:
+	make std
+	./macierz lista 3 5 1
 clean:
 	rm tmp* macierz 

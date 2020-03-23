@@ -37,21 +37,24 @@ void print_matrix(int ** arr, int rows, int cols){
     }
 }
 
-char * find_nth_place(char * buff, int n ){
+int find_nth_place(char * buff, int cols, int rows, int idr, int idc ){
     int cnt = 0;
 
     char * tmp = buff;
-    if(n == 0){
-        return tmp;
+    if(idr == 0 && idc == 0){
+        return 0;
     }
-    do{
-        tmp = strchr(tmp+1, ' ');
-        cnt++;
+    
+    for(int i = 0; buff[i] != '\0'; i++){
+        if(buff[i] == ' ' || buff[i] == '\n'){
+            cnt++;
+        }
+        if(cnt == idr*cols+idc){
+            return i+1;
+        }
+    }
 
-    }while(tmp != NULL && cnt != n);
-
-    tmp++;
-    return tmp;
+    return NULL;
 }
 
 int file_len(FILE * file){
@@ -60,11 +63,13 @@ int file_len(FILE * file){
     rewind(file);
     return size;
 }
-void paste(char * filename, int rown, int col_start, int col_end, int ** arr){
+void paste(char * filename, int rown, int coln, int col_start, int col_end, int ** arr){
 
     FILE *file = fopen(filename,"r+");
+
     while(lockf(file->_fileno, F_TLOCK, file_len(file)) == -1){
-        printf("czekam ");
+    printf("czekam %d\r\n", (int)getpid());
+
     }
     printf("blokuje %d\r\n", (int)getpid());
 
@@ -97,29 +102,42 @@ void paste(char * filename, int rown, int col_start, int col_end, int ** arr){
             // while(tmp != NULL);
 
             // fprintf(file, )
-            int readno = strlen(fgets(buff, 256, file));
-            int readno2 = fread(bigbigbuff2, 1, 4096, file);
-            fseek(file, -readno-readno2, SEEK_CUR);
-            char * str2 = find_nth_place(buff, j);
-            *str2 = '\0';
-            str2++;
-
+            rewind(file);
+            int readno = fread(bigbigbuff1,1,4096, file);
+            bigbigbuff1[readno] = '\0';
+            int end = find_nth_place(bigbigbuff1, coln, rown, i, j);
+            bigbigbuff1[end] = '\0';
+            memcpy(bigbigbuff2, bigbigbuff1, readno);
             char intstr[16];
             sprintf(intstr, "%d", arr[i][j]);
-            strcpy(newbuff, buff);
-            strcat(newbuff, intstr);
-            strcat(newbuff, str2);
-            fputs(newbuff, file);
-            fwrite(bigbigbuff2, 1, readno2, file);
-            fseek(file, -readno2 - strlen(newbuff), SEEK_CUR);
+            strcat(bigbigbuff2, intstr);
+            strcat(bigbigbuff2, bigbigbuff1+1+end);
+            rewind(file);
+            fwrite(bigbigbuff2,1, readno + strlen(intstr) -1, file);
             fflush(file);
+            // int readno2 = fread(bigbigbuff2, 1, 4096, file);
+            // fseek(file, -readno-readno2, SEEK_CUR);
+            // char * str2 = find_nth_place(buff, j);
+            // *str2 = '\0';
+            // str2++;
+
+            // char intstr[16];
+            // sprintf(intstr, "%d", arr[i][j]);
+            // strcpy(newbuff, buff);
+            // strcat(newbuff, intstr);
+            // strcat(newbuff, str2);
+            // fputs(newbuff, file);
+            // fwrite(bigbigbuff2, 1, readno2, file);
+            // fseek(file, -readno2 - strlen(newbuff), SEEK_CUR);
+            // fflush(file);
+
         }
-        fgets(buff, 256, file);
     }
 
     rewind(file);
-    fread(buff, 1, 4096,file);
-    printf("file:\r\n%s", buff);
+    bigbigbuff1[fread(bigbigbuff1, 1, 4096,file)] = '\0';
+    
+    printf("file:\r\n%s", bigbigbuff1);
     printf("odblokuje %d\r\n", (int)getpid());
     rewind(file);
     lockf(file->_fileno, F_ULOCK, file_len(file));
@@ -175,7 +193,7 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
     }
     printf("result: \r\n");
     print_matrix(res,arows,bcols);
-    paste(filec, arows, col_start, col_end, res);
+    paste(filec, arows,bcols, col_start, col_end, res);
 
     for(int i = 0; i < bcols; i++) free(res[i]);
     free(res);
@@ -209,6 +227,7 @@ void matrix_params(FILE *file, int * coln, int * rown){
 
 }
 
+
 int main(int argc, char** argv){
 
     struct config cfg;
@@ -228,13 +247,20 @@ int main(int argc, char** argv){
         printf("nie ma listy \r\n");
         exit(0);
     }
-    fgets(cfg.filea, FILENAME_LEN, file);
-    fgets(cfg.fileb, FILENAME_LEN, file);
-    fgets(cfg.filec, FILENAME_LEN, file);
+    while(fgets(cfg.filea, FILENAME_LEN, file) != NULL){
+        fgets(cfg.fileb, FILENAME_LEN, file);
+        fgets(cfg.filec, FILENAME_LEN, file);
+
+        cfg.filea[strlen(cfg.filea)-1] = '\0';
+        cfg.fileb[strlen(cfg.fileb)-1] = '\0';
+
+    }
+    
+
     fclose(file);
     
-    FILE * filea = fopen("a.txt", "r");
-    FILE * fileb = fopen("b.txt", "r");
+    FILE * filea = fopen(cfg.filea, "r");
+    FILE * fileb = fopen(cfg.fileb, "r");
 
     int acoln = 0;
     int arown = 0;
@@ -251,6 +277,7 @@ int main(int argc, char** argv){
     }
     
     int cols_per_proc = bcoln / cfg.childsq;
+
 
     int child_pid;
     // child_func(filea, arown, acoln, fileb, bcoln, 1, 2, filec, 10);

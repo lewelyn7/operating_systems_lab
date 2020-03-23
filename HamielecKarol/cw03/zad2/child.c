@@ -96,7 +96,7 @@ void paste(char * filename, int rown, int coln, int col_start, int col_end, int 
     FILE *file = fopen(filename,"r+");
 
     while(lockf(file->_fileno, F_TLOCK, file_len(file)) == -1){
-    printf("czekam %d\r\n", (int)getpid());
+    // printf("czekam %d\r\n", (int)getpid());
 
     }
     // printf("blokuje %d\r\n", (int)getpid());
@@ -194,7 +194,7 @@ int** load_matrix(FILE *file, int rows, int cols){
 
 //col_start inclusive; col_end exclusive
 void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, char *filec){
-    printf("new proccess: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
+    printf("new counting: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
     int **res = (int**)calloc(arows, sizeof(int*));
     for(int i = 0; i < arows; i++) res[i] = (int*) calloc(bcols, sizeof(int));
 
@@ -222,7 +222,7 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
     // print_matrix(res,arows,bcols);
     paste(filec, arows,bcols, col_start, col_end, res);
 
-    for(int i = 0; i < bcols; i++) free(res[i]);
+    for(int i = 0; i < arows; i++) free(res[i]);
     free(res);
 
 }
@@ -289,6 +289,7 @@ int main(int argc, char** argv){
             if(tmp != cfg.my_id && my_job_done == 0){
                 continue;
             }
+            while(flock(tasksf->_fileno,F_LOCK) == -1);
             all_done = 0;
             sscanf(buff, "%d %s %s %s %d %d %lf", &cfg.my_id, cfg.filea, cfg.fileb, cfg.filec, &cfg.col_start, &cfg.col_end, &cfg.time_max);
             
@@ -296,7 +297,7 @@ int main(int argc, char** argv){
             buff[0] = 'x';
             fputs(buff, tasksf);
             fflush(tasksf);
-
+            flock(tasksf->_fileno,F_ULOCK);
             FILE * filea = fopen(cfg.filea, "r");
             FILE * fileb = fopen(cfg.fileb, "r");
 
@@ -308,7 +309,7 @@ int main(int argc, char** argv){
             matrix_params(filea, &acoln, &arown);
             matrix_params(fileb, &bcoln, &brown);
 
-            if(acoln != brown && arown != bcoln){
+            if(acoln != brown){
                 printf("macierzy nie da sie dot product \r\n");
                 exit(-1);
             }
@@ -321,9 +322,10 @@ int main(int argc, char** argv){
             // printf("PID %d %d\r\n", (int)getpid(), mlp_cnt);
             tmstr = time_stop(tmstr);
             if(calc_elapsed(tmstr.clock_start, tmstr.clock_end) > cfg.time_max){
+                printf("time elapsed: %d %d\r\n", (int)getpid(), mlp_cnt);
                 exit(mlp_cnt);
             }
-
+            while(flock(tasksf->_fileno,F_LOCK) == -1);
         }
         rewind(tasksf);
         my_job_done = 1;

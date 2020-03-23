@@ -262,7 +262,7 @@ int main(int argc, char** argv){
         
         FILE * filea = fopen(cfg.filea, "r");
         FILE * fileb = fopen(cfg.fileb, "r");
-
+        FILE * filec = fopen(cfg.filec, "w");
         int acoln = 0;
         int arown = 0;
         int bcoln = 0;
@@ -273,20 +273,32 @@ int main(int argc, char** argv){
         matrix_params(filea, &acoln, &arown);
         matrix_params(fileb, &bcoln, &brown);
 
+        for(int i = 0; i < arown; i++){
+            for(int j = 0; j < bcoln-1; j++){
+                fputs("- ", filec);
+            }
+            fputs("-\n", filec);
+        }
+
+
         fclose(filea);
         fclose(fileb);
-
-        if(acoln != brown && arown != bcoln){
+        fclose(filec);
+        if(acoln != brown){
             printf("macierzy nie da sie dot product \r\n");
             exit(-1);
         }
         
         int cols_per_proc = bcoln / cfg.childsq;
+        int last_extension = bcoln%cfg.childsq;
 
-        for(int i = 0; i < cfg.childsq; i++){
+        for(int i = 0; i < cfg.childsq-1; i++){
             //numer dziecka; plik a; plik b; plik c; col_start inclusive; col_end exclusive; time_max;
             fprintf(tasksf, "%d %s %s %s %d %d %f\n", i, cfg.filea, cfg.fileb, cfg.filec, (i)*cols_per_proc, (i+1)*cols_per_proc, cfg.time_max);
         }
+        //last
+        fprintf(tasksf, "%d %s %s %s %d %d %f\n", cfg.childsq-1, cfg.filea, cfg.fileb, cfg.filec, (cfg.childsq-1)*cols_per_proc, (cfg.childsq-1+1)*cols_per_proc+last_extension, cfg.time_max);
+
 
     }
     fclose(file);

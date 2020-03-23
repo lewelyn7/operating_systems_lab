@@ -307,7 +307,11 @@ int main(int argc, char** argv){
         }
         //last
         fprintf(tasksf, "%d %s %s %s %d %d %f\n", cfg.childsq-1, cfg.filea, cfg.fileb, cfg.filec, (cfg.childsq-1)*cols_per_proc, (cfg.childsq-1+1)*cols_per_proc+last_extension, cfg.time_max);
-
+        strcat(paste_cmds[k], cfg.filec);
+        char mamdosc[8];
+        sprintf(mamdosc, "%d", cfg.childsq-1);
+        strcat(paste_cmds[k], mamdosc);
+        strcat(paste_cmds[k], " ");
         k++;
     }
     fclose(file);
@@ -343,5 +347,8 @@ int main(int argc, char** argv){
             }
         }
     }
+    do{
+        child_pid = wait(&status);
+    }while(child_pid != -1);
     return 0;
 }

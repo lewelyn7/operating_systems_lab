@@ -13,21 +13,55 @@
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/times.h>
+#include <time.h>
 #include <unistd.h> 
 #include <fcntl.h>
 #include <features.h>
+#include <sys/resource.h>
 #define FILENAME_LEN 64
 
 struct config{
-    char list[FILENAME_LEN];
+    int my_id;
+    int task_id;
+    char tasks[FILENAME_LEN];
     char filea[FILENAME_LEN];
     char fileb[FILENAME_LEN];
     char filec[FILENAME_LEN];
     int childsq;
-    float time_max;
+    double time_max;
     int mode;
+    int col_start;
+    int col_end;
+    int cputime;
+    int virtualmem;
 };
+struct config cfg;
 
+
+double calc_elapsed(clock_t start, clock_t end){
+    double elap = ((double) (end - start)) / sysconf(_SC_CLK_TCK);
+    // printf("elapsed: %f\r\n", elap);
+    return elap;
+}
+
+
+struct timestruct{
+    struct tms tms_start;
+    struct tms tms_end;
+    clock_t clock_start;
+    clock_t clock_end;
+};
+struct timestruct time_start(){
+    struct timestruct tmstr;
+    tmstr.clock_start = times(&tmstr.tms_start);
+    return tmstr;
+}
+
+struct timestruct time_stop(struct timestruct tmstr){
+    tmstr.clock_end = times(&tmstr.tms_end);
+    return tmstr;
+}
 void print_matrix(int ** arr, int rows, int cols){
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
@@ -68,10 +102,10 @@ void paste(char * filename, int rown, int coln, int col_start, int col_end, int 
     FILE *file = fopen(filename,"r+");
 
     while(lockf(file->_fileno, F_TLOCK, file_len(file)) == -1){
-    printf("czekam %d\r\n", (int)getpid());
+    // printf("czekam %d\r\n", (int)getpid());
 
     }
-    printf("blokuje %d\r\n", (int)getpid());
+    // printf("blokuje %d\r\n", (int)getpid());
 
     // lockf(file->_fileno, F_LOCK, file_len(file));
     
@@ -137,13 +171,34 @@ void paste(char * filename, int rown, int coln, int col_start, int col_end, int 
     rewind(file);
     bigbigbuff1[fread(bigbigbuff1, 1, 4096,file)] = '\0';
     
-    printf("file:\r\n%s", bigbigbuff1);
-    printf("odblokuje %d\r\n", (int)getpid());
+    //printf("file:\r\n%s", bigbigbuff1);
+    // printf("odblokuje %d\r\n", (int)getpid());
     rewind(file);
     lockf(file->_fileno, F_ULOCK, file_len(file));
     fclose(file);
 }
+void paste_ind(char * filename, int rown, int coln, int col_start, int col_end, int ** arr){
 
+    char buf[16];
+    sprintf(buf, "%d", cfg.task_id);
+    char buf2[64];
+    strcpy(buf2, filename);
+    strcat(buf2, buf);
+    FILE * file = fopen(buf2, "w");
+    for(int i = 0; i < rown; i++){
+        for(int j = col_start; j < col_end-1; j++){
+            sprintf(buf, "%d", arr[i][j]);
+            fputs(buf, file);
+            fputs(" ", file);
+        }
+        sprintf(buf, "%d", arr[i][col_end-1]);
+        fputs(buf, file);
+        fputs("\n", file);
+
+    }
+    fclose(file);
+
+}
 int** load_matrix(FILE *file, int rows, int cols){
     if(file == NULL){
         printf("plik nie otworzony");
@@ -165,9 +220,8 @@ int** load_matrix(FILE *file, int rows, int cols){
 }
 
 //col_start inclusive; col_end exclusive
-void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, char *filec, float time_max){
-    clock_t time_start = time(NULL);
-    printf("new proccess: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
+void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, char *filec){
+    printf("new counting: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
     int **res = (int**)calloc(arows, sizeof(int*));
     for(int i = 0; i < arows; i++) res[i] = (int*) calloc(bcols, sizeof(int));
 
@@ -191,14 +245,16 @@ void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int c
         }
         
     }
-    printf("result: \r\n");
-    print_matrix(res,arows,bcols);
-    paste(filec, arows,bcols, col_start, col_end, res);
-
-    for(int i = 0; i < bcols; i++) free(res[i]);
+    // printf("result: \r\n");
+    // print_matrix(res,arows,bcols);
+    if(cfg.mode == 0){
+        paste(filec, arows,bcols, col_start, col_end, res);
+    }else if(cfg.mode == 1){
+        paste_ind(filec, arows,bcols, col_start, col_end, res);
+    }
+    for(int i = 0; i < arows; i++) free(res[i]);
     free(res);
 
-    exit(1);
 }
 
 
@@ -227,129 +283,108 @@ void matrix_params(FILE *file, int * coln, int * rown){
 
 }
 
-
 int main(int argc, char** argv){
-    struct config cfg;
 
-    if(argc != 5){
+
+
+    if(argc != 6){
         printf("bledna ilosc argumentow");
-        exit(0);
+        exit(-1);
     }
 
-    sscanf(argv[1], "%s", cfg.list);
-    sscanf(argv[2], "%d", &cfg.childsq);
-    sscanf(argv[3], "%f", &cfg.time_max);
-    sscanf(argv[4], "%d", &cfg.mode);
 
-    FILE * file = fopen(cfg.list, "r");
-    if(file == NULL){
-        printf("nie ma listy \r\n");
-        exit(0);
-    }
+    sscanf(argv[1], "%d", &cfg.my_id);
+    sscanf(argv[2], "%s", cfg.tasks);
+    sscanf(argv[3], "%d", &cfg.mode);
+    sscanf(argv[4], "%d", &cfg.cputime);
+    sscanf(argv[5], "%d", &cfg.virtualmem);
 
-    FILE * tasksf = fopen("tmp_tasks.txt", "w");
+    struct rlimit cpulim;
+    struct rlimit memlim;
+    cpulim.rlim_max = cfg.cputime;
+    memlim.rlim_max = cfg.virtualmem;
+    // setrlimit(RLIMIT_CPU, &cpulim);
+    // setrlimit(RLIMIT_AS,  &memlim);
+
+    FILE * tasksf = fopen("tmp_tasks.txt", "r+");
     if(tasksf == NULL){
-        printf("cant open tasks file");
+        printf("cant open tasks file child");
+        exit(-1);
     }
+    char buff[512];
 
-    int k = 0;
-    char paste_cmds[64][64];
-    char kolejnytabxd[64][64];
-    while(fgets(cfg.filea, FILENAME_LEN, file) != NULL){
-        fgets(cfg.fileb, FILENAME_LEN, file);
-        fgets(cfg.filec, FILENAME_LEN, file);
+    int my_job_done = 0;
+    int mlp_cnt = 0;
+    int all_done;
 
-        if(cfg.filea[strlen(cfg.filea)-1] == '\n') cfg.filea[strlen(cfg.filea)-1] = '\0';
-        if(cfg.fileb[strlen(cfg.fileb)-1] == '\n') cfg.fileb[strlen(cfg.fileb)-1] = '\0';
-        if(cfg.filec[strlen(cfg.filec)-1] == '\n') cfg.filec[strlen(cfg.filec)-1] = '\0';
-        
-        FILE * filea = fopen(cfg.filea, "r");
-        FILE * fileb = fopen(cfg.fileb, "r");
-        FILE * filec = fopen(cfg.filec, "w");
-        int acoln = 0;
-        int arown = 0;
-        int bcoln = 0;
-        int brown = 0;
-
-
-
-        matrix_params(filea, &acoln, &arown);
-        matrix_params(fileb, &bcoln, &brown);
-
-        for(int i = 0; i < arown; i++){
-            for(int j = 0; j < bcoln-1; j++){
-                fputs("- ", filec);
+    while(1){
+        while(fgets(buff, 512, tasksf) != NULL){
+            if(buff[0] == 'x'){
+                all_done = 1;
+                continue;
             }
-            fputs("-\n", filec);
-        }
+            int tmp;
+            sscanf(buff, "%d", &tmp);
+            cfg.task_id = tmp;
+            if(tmp != cfg.my_id && my_job_done == 0){
+                continue;
+            }
+            while(flock(tasksf->_fileno,F_LOCK) == -1);
+            all_done = 0;
+            sscanf(buff, "%d %s %s %s %d %d %lf", &cfg.my_id, cfg.filea, cfg.fileb, cfg.filec, &cfg.col_start, &cfg.col_end, &cfg.time_max);
+            
+            fseek(tasksf, -strlen(buff), SEEK_CUR);
+            buff[0] = 'x';
+            fputs(buff, tasksf);
+            fflush(tasksf);
+            flock(tasksf->_fileno,F_ULOCK);
+            FILE * filea = fopen(cfg.filea, "r");
+            FILE * fileb = fopen(cfg.fileb, "r");
 
+            int acoln = 0;
+            int arown = 0;
+            int bcoln = 0;
+            int brown = 0;
 
-        fclose(filea);
-        fclose(fileb);
-        fclose(filec);
-        if(acoln != brown){
-            printf("macierzy nie da sie dot product \r\n");
-            exit(-1);
+            matrix_params(filea, &acoln, &arown);
+            matrix_params(fileb, &bcoln, &brown);
+
+            if(acoln != brown){
+                printf("macierzy nie da sie dot product \r\n");
+                exit(-1);
+            }
+
+            struct timestruct tmstr;
+            tmstr = time_start();
+
+            child_func(filea, arown, acoln, fileb, bcoln, cfg.col_start, cfg.col_end, cfg.filec);   
+            mlp_cnt++;        
+            // printf("PID %d %d\r\n", (int)getpid(), mlp_cnt);
+            tmstr = time_stop(tmstr);
+            if(calc_elapsed(tmstr.clock_start, tmstr.clock_end) > cfg.time_max){
+                printf("time elapsed: %d %d\r\n", (int)getpid(), mlp_cnt);
+                exit(mlp_cnt);
+            }
+            while(flock(tasksf->_fileno,F_LOCK) == -1);
         }
-        
-        int cols_per_proc = bcoln / cfg.childsq;
-        int last_extension = bcoln%cfg.childsq;
-        strcpy(paste_cmds[k], "");
-        strcpy(kolejnytabxd[k], cfg.filec);
-        for(int i = 0; i < cfg.childsq-1; i++){
-            //numer dziecka; plik a; plik b; plik c; col_start inclusive; col_end exclusive; time_max;
-            strcat(paste_cmds[k], cfg.filec);
-            char mamdosc[8];
-            sprintf(mamdosc, "%d", i);
-            strcat(paste_cmds[k], mamdosc);
-            strcat(paste_cmds[k], " ");
-            fprintf(tasksf, "%d %s %s %s %d %d %f\n", i, cfg.filea, cfg.fileb, cfg.filec, (i)*cols_per_proc, (i+1)*cols_per_proc, cfg.time_max);
+        rewind(tasksf);
+        my_job_done = 1;
+        if(all_done){
+            exit(mlp_cnt);
         }
-        //last
-        fprintf(tasksf, "%d %s %s %s %d %d %f\n", cfg.childsq-1, cfg.filea, cfg.fileb, cfg.filec, (cfg.childsq-1)*cols_per_proc, (cfg.childsq-1+1)*cols_per_proc+last_extension, cfg.time_max);
-        strcat(paste_cmds[k], cfg.filec);
-        char mamdosc[8];
-        sprintf(mamdosc, "%d", cfg.childsq-1);
-        strcat(paste_cmds[k], mamdosc);
-        strcat(paste_cmds[k], " ");
-        k++;
     }
-    fclose(file);
     fclose(tasksf);
+    exit(mlp_cnt);
+    // child_func(filea, arown, acoln, fileb, bcoln, 1, 2, filec, 10);
+    // for(int i = 0; i < cfg.childsq; i++){
 
-    int child_pid;
+    //     child_pid = fork();
+    //     if(child_pid == 0){
+    //         child_func(filea, arown, acoln, fileb, bcoln, (i)*cols_per_proc, (i+1)*cols_per_proc, "c.txt", 10);
 
-    for(int i = 0; i < cfg.childsq; i++){
+    //     }
 
-        child_pid = fork();
-        if(child_pid == 0){
-            char to_str[8];
-            sprintf(to_str, "%d", i);
-            int stat;
-            execl("./child", "./child", to_str, "tmp_tasks.txt", argv[4], NULL);
+    // }
 
-        }
-
-    }
-    int status = 0;
-    do{
-        child_pid = wait(&status);
-        if(child_pid == -1) break;
-        printf("\r\nchild: %d returned %d\r\n", (int)child_pid, WEXITSTATUS(status));
-    }while(child_pid != -1);
-    
-    if(cfg.mode == 1){
-        for(int i = 0; i < k; i++){
-            int childpidkolejny = fork();
-            if(childpidkolejny == 0){
-                execl("./helper.sh", "./helper.sh", paste_cmds[i], kolejnytabxd[i], NULL);
-                // execlp("ls", "ls", NULL);
-                exit(0);
-            }
-        }
-    }
-    do{
-        child_pid = wait(&status);
-    }while(child_pid != -1);
     return 0;
 }

@@ -16,6 +16,7 @@
 #include <unistd.h> 
 #include <fcntl.h>
 #include <features.h>
+#include <sys/resource.h>
 #define FILENAME_LEN 64
 
 struct config{
@@ -164,42 +165,7 @@ int** load_matrix(FILE *file, int rows, int cols){
     return(res);
 }
 
-//col_start inclusive; col_end exclusive
-void child_func(FILE *filea, int arows, int acols, FILE *fileb, int bcols, int col_start, int col_end, char *filec, float time_max){
-    clock_t time_start = time(NULL);
-    printf("new proccess: %d; col_start: %d, col_end: %d\r\n", (int)getpid(), col_start, col_end);
-    int **res = (int**)calloc(arows, sizeof(int*));
-    for(int i = 0; i < arows; i++) res[i] = (int*) calloc(bcols, sizeof(int));
 
-
-    int ** a_matrix = load_matrix(filea, arows, acols);
-    int ** b_matrix = load_matrix(fileb, acols, bcols);
-
-    int sum = 0;
-
-    for(int i = 0; i < arows; i++){
-
-        for(int j = 0; j < col_end - col_start; j++){
-
-            for(int k = 0; k < acols; k++){
-
-                sum += a_matrix[i][k] * b_matrix[k][j + col_start];
-
-            }
-            res[i][j+ col_start] = sum;
-            sum = 0;
-        }
-        
-    }
-    printf("result: \r\n");
-    print_matrix(res,arows,bcols);
-    paste(filec, arows,bcols, col_start, col_end, res);
-
-    for(int i = 0; i < bcols; i++) free(res[i]);
-    free(res);
-
-    exit(1);
-}
 
 
 void matrix_params(FILE *file, int * coln, int * rown){
@@ -226,12 +192,19 @@ void matrix_params(FILE *file, int * coln, int * rown){
     fseek(file, 0, SEEK_SET);
 
 }
-
+long int calc_time(struct timeval * t){
+  return (long int)t->tv_sec * 1000000 + (long int)t->tv_usec;
+}
+void write_usage(struct rusage first, struct rusage second){
+  long int user = abs(calc_time(&second.ru_utime) - calc_time(&first.ru_stime));
+  long int system = abs(calc_time(&second.ru_stime) - calc_time(&first.ru_stime));
+  printf("time stats: user: %lf system: %lf\n", (double)user / 1000000, (double)system / 1000000);
+}
 
 int main(int argc, char** argv){
     struct config cfg;
 
-    if(argc != 5){
+    if(argc != 7){
         printf("bledna ilosc argumentow");
         exit(0);
     }
@@ -326,16 +299,21 @@ int main(int argc, char** argv){
             char to_str[8];
             sprintf(to_str, "%d", i);
             int stat;
-            execl("./child", "./child", to_str, "tmp_tasks.txt", argv[4], NULL);
+            execl("./child", "./child", to_str, "tmp_tasks.txt", argv[4], argv[5], argv[6], NULL);
 
         }
 
     }
     int status = 0;
+    struct rusage first_usage, second_usage;
+    getrusage(RUSAGE_CHILDREN, &first_usage);
     do{
         child_pid = wait(&status);
         if(child_pid == -1) break;
+        getrusage(RUSAGE_CHILDREN, &second_usage);
         printf("\r\nchild: %d returned %d\r\n", (int)child_pid, WEXITSTATUS(status));
+        write_usage(first_usage, second_usage);
+        first_usage = second_usage;
     }while(child_pid != -1);
     
     if(cfg.mode == 1){

@@ -365,7 +365,7 @@ int main(int argc, char** argv){
                 printf("time elapsed: %d %d\r\n", (int)getpid(), mlp_cnt);
                 exit(mlp_cnt);
             }
-            while(flock(tasksf->_fileno,F_LOCK) == -1);
+            while(flock(tasksf->_fileno,F_LOCK|LOCK_NB) == -1);
         }
         rewind(tasksf);
         my_job_done = 1;

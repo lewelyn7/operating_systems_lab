@@ -74,6 +74,7 @@ int find_nftw_helper(const char * pathfull, const struct stat * buf_stat, int xd
         
         if(S_ISLNK(buf_stat->st_mode)){
             printf(" slink ");           
+            printf(" slink ");           
         }else if(S_ISDIR(buf_stat->st_mode)){
             printf(" dir ");
         }else if(S_ISCHR(buf_stat->st_mode)){

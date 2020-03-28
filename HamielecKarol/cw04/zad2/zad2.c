@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -21,7 +20,7 @@
 #define EXEC_MODE 0
 
 
-char sig_dict[32][16] = {"xxxx", "SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGIOT", "SIGBUS", "SIGFPE", "SIGKILL", "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM", "SIGSTKFLT", "SIGCHLD", "SIGCONT", "SIGSTOP", "SIGTSTP", "SIGTTIN", "SIGTTOU", "SIGURG", "SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF", "SIGWINCH", "SIGIO", "SIGPOLL"};
+char sig_dict[32][16] = {"xxxx", "SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGBUS", "SIGFPE", "SIGKILL", "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM", "SIGSTKFLT", "SIGCHLD", "SIGCONT", "SIGSTOP", "SIGTSTP", "SIGTTIN", "SIGTTOU", "SIGURG", "SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF", "SIGWINCH", "SIGIO", "SIGPOLL"};
 struct config{
     char opt[16];
     char sig[16];
@@ -38,10 +37,11 @@ int find_sig_num(char * sig){
 }
 
 void sig_handler(int num){
-    printf("(PID) %d Otrzymałem: %s \r\n", (int)getpid(), sig_dict[num]);
+    printf("\r\n(PID) %d Otrzymałem: %s \r\n", (int)getpid(), sig_dict[num]);
 }
 
 int main(int argc, char** argv){
+    printf("ja to (PID)%d\r\n", (int)getpid());
     struct config cfg;
 
     if(argc != 4 && argc != 5){
@@ -73,7 +73,8 @@ int main(int argc, char** argv){
         printf("ustawiam handler %s\r\n", cfg.sig);
         signal(cfg.signum, sig_handler);   
     }else if(!strcmp(cfg.opt, "mask")){
-        printf("ustawiam maske  na %s\r\n", cfg.sig);
+        printf("ustawiam maske i handler na %s\r\n", cfg.sig);
+        signal(cfg.signum, sig_handler);   
         sigset_t new_set;
         sigemptyset(&new_set);
         sigaddset(&new_set, cfg.signum);
@@ -84,15 +85,44 @@ int main(int argc, char** argv){
 
     printf("raise: %s...\r\n", cfg.sig);
     raise(cfg.signum);
+    if(!strcmp(cfg.opt, "mask")){
+        sigset_t check_set;
+        sigemptyset(&check_set);
+        sigpending(&check_set);
+        // int sigismember ( sigset_t *signal_set, int sig_no );
+        if( sigismember(&check_set, cfg.signum)){
+            printf("(PID)%d sygnał %s czeka do obebrania\r\n", (int)getpid(), cfg.sig);
+            sigset_t newmask;
+            sigemptyset(&newmask);
+            sigsuspend(&newmask);
+        }
+    }
 
     if(cfg.mode == FORK_MODE){
         int childpid = fork();
         if(childpid == 0){
             printf("raise jako potomek (PID)%d %s...\r\n", (int)getpid(), cfg.sig);
             raise(cfg.signum);
+            if(!strcmp(cfg.opt, "mask")){
+                sigset_t check_set;
+                sigpending(&check_set);
+                // int sigismember ( sigset_t *signal_set, int sig_no );
+                if(!strcmp(cfg.opt, "mask")){
+                    sigset_t check_set;
+                    sigemptyset(&check_set);
+                    sigpending(&check_set);
+                    if( sigismember(&check_set, cfg.signum)){
+                        printf("(PID)%d sygnał %s czeka do obebrania\r\n", (int)getpid(), cfg.sig);
+                        sigset_t newmask;
+                        sigemptyset(&newmask);
+                        sigsuspend(&newmask);
+                    }
+                }
+            }
             exit(0);
         }
         childpid = wait(NULL);
+        // printf("dziecko skończyło (PID)%d", childpid);
     }else{
         printf("bedzie raise jako exec %s...\r\n", cfg.sig);
         execl("./exec_child", "exec_child", cfg.sig, NULL);

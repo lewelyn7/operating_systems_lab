@@ -55,8 +55,9 @@ int main(int argc, char** argv){
     }
     
     printf("jestem sobie exec i robie raise: %s...\r\n", cfg.sig);
-    raise(cfg.signum);
-
+    
+    // raise(cfg.signum);
+    sleep(1);
 
 
 }

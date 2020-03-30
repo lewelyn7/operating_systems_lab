@@ -1,0 +1,206 @@
+ 
+--------------------
+ja to (PID)69123
+ustawiam handler SIGINT
+raise: SIGINT...
+
+(PID) 69123 Otrzymałem: SIGINT 
+
+(PID) 69124 Otrzymałem: SIGINT 
+raise jako potomek (PID)69124 SIGINT...
+ja to (PID)69123
+ustawiam handler SIGINT
+raise: SIGINT...
+
+(PID) 69123 Otrzymałem: SIGINT 
+jestem sobie exec i robie raise: SIGINT...
+ja to (PID)69128
+ustawiam ignorowanie SIGINT
+raise: SIGINT...
+raise jako potomek (PID)69129 SIGINT...
+ja to (PID)69128
+ustawiam ignorowanie SIGINT
+raise: SIGINT...
+jestem sobie exec i robie raise: SIGINT...
+ja to (PID)69133
+ustawiam maske i handler na SIGINT
+raise: SIGINT...
+(PID)69133 sygnał SIGINT czeka do obebrania
+
+(PID) 69133 Otrzymałem: SIGINT 
+raise jako potomek (PID)69134 SIGINT...
+(PID)69134 sygnał SIGINT czeka do obebrania
+
+(PID) 69134 Otrzymałem: SIGINT 
+ja to (PID)69133
+ustawiam maske i handler na SIGINT
+raise: SIGINT...
+(PID)69133 sygnał SIGINT czeka do obebrania
+
+(PID) 69133 Otrzymałem: SIGINT 
+--------------------
+--------------------
+ja to (PID)69152
+ustawiam handler SIGQUIT
+raise: SIGQUIT...
+
+(PID) 69152 Otrzymałem: SIGQUIT 
+
+(PID) 69153 Otrzymałem: SIGQUIT 
+raise jako potomek (PID)69153 SIGQUIT...
+ja to (PID)69152
+ustawiam handler SIGQUIT
+raise: SIGQUIT...
+
+(PID) 69152 Otrzymałem: SIGQUIT 
+jestem sobie exec i robie raise: SIGQUIT...
+ja to (PID)69157
+ustawiam ignorowanie SIGQUIT
+raise: SIGQUIT...
+raise jako potomek (PID)69158 SIGQUIT...
+ja to (PID)69157
+ustawiam ignorowanie SIGQUIT
+raise: SIGQUIT...
+jestem sobie exec i robie raise: SIGQUIT...
+ja to (PID)69162
+ustawiam maske i handler na SIGQUIT
+raise: SIGQUIT...
+(PID)69162 sygnał SIGQUIT czeka do obebrania
+
+(PID) 69162 Otrzymałem: SIGQUIT 
+raise jako potomek (PID)69163 SIGQUIT...
+(PID)69163 sygnał SIGQUIT czeka do obebrania
+
+(PID) 69163 Otrzymałem: SIGQUIT 
+ja to (PID)69162
+ustawiam maske i handler na SIGQUIT
+raise: SIGQUIT...
+(PID)69162 sygnał SIGQUIT czeka do obebrania
+
+(PID) 69162 Otrzymałem: SIGQUIT 
+--------------------
+--------------------
+ja to (PID)69182
+ustawiam handler SIGTERM
+raise: SIGTERM...
+
+(PID) 69182 Otrzymałem: SIGTERM 
+
+(PID) 69183 Otrzymałem: SIGTERM 
+raise jako potomek (PID)69183 SIGTERM...
+ja to (PID)69182
+ustawiam handler SIGTERM
+raise: SIGTERM...
+
+(PID) 69182 Otrzymałem: SIGTERM 
+jestem sobie exec i robie raise: SIGTERM...
+ja to (PID)69187
+ustawiam ignorowanie SIGTERM
+raise: SIGTERM...
+raise jako potomek (PID)69188 SIGTERM...
+ja to (PID)69187
+ustawiam ignorowanie SIGTERM
+raise: SIGTERM...
+jestem sobie exec i robie raise: SIGTERM...
+ja to (PID)69192
+ustawiam maske i handler na SIGTERM
+raise: SIGTERM...
+(PID)69192 sygnał SIGTERM czeka do obebrania
+
+(PID) 69192 Otrzymałem: SIGTERM 
+raise jako potomek (PID)69193 SIGTERM...
+(PID)69193 sygnał SIGTERM czeka do obebrania
+
+(PID) 69193 Otrzymałem: SIGTERM 
+ja to (PID)69192
+ustawiam maske i handler na SIGTERM
+raise: SIGTERM...
+(PID)69192 sygnał SIGTERM czeka do obebrania
+
+(PID) 69192 Otrzymałem: SIGTERM 
+--------------------
+--------------------
+ja to (PID)69211
+ustawiam handler SIGCHLD
+raise: SIGCHLD...
+
+(PID) 69211 Otrzymałem: SIGCHLD 
+
+(PID) 69212 Otrzymałem: SIGCHLD 
+raise jako potomek (PID)69212 SIGCHLD...
+ja to (PID)69211
+ustawiam handler SIGCHLD
+raise: SIGCHLD...
+
+(PID) 69211 Otrzymałem: SIGCHLD 
+
+(PID) 69211 Otrzymałem: SIGCHLD 
+jestem sobie exec i robie raise: SIGCHLD...
+ja to (PID)69216
+ustawiam ignorowanie SIGCHLD
+raise: SIGCHLD...
+raise jako potomek (PID)69217 SIGCHLD...
+ja to (PID)69216
+ustawiam ignorowanie SIGCHLD
+raise: SIGCHLD...
+jestem sobie exec i robie raise: SIGCHLD...
+ja to (PID)69221
+ustawiam maske i handler na SIGCHLD
+raise: SIGCHLD...
+(PID)69221 sygnał SIGCHLD czeka do obebrania
+
+(PID) 69221 Otrzymałem: SIGCHLD 
+raise jako potomek (PID)69222 SIGCHLD...
+(PID)69222 sygnał SIGCHLD czeka do obebrania
+
+(PID) 69222 Otrzymałem: SIGCHLD 
+ja to (PID)69221
+ustawiam maske i handler na SIGCHLD
+raise: SIGCHLD...
+(PID)69221 sygnał SIGCHLD czeka do obebrania
+
+(PID) 69221 Otrzymałem: SIGCHLD 
+--------------------
+--------------------
+ja to (PID)69240
+ustawiam handler SIGUSR1
+raise: SIGUSR1...
+
+(PID) 69240 Otrzymałem: SIGUSR1 
+
+(PID) 69241 Otrzymałem: SIGUSR1 
+raise jako potomek (PID)69241 SIGUSR1...
+ja to (PID)69240
+ustawiam handler SIGUSR1
+raise: SIGUSR1...
+
+(PID) 69240 Otrzymałem: SIGUSR1 
+jestem sobie exec i robie raise: SIGUSR1...
+ja to (PID)69245
+ustawiam ignorowanie SIGUSR1
+raise: SIGUSR1...
+raise jako potomek (PID)69246 SIGUSR1...
+ja to (PID)69245
+ustawiam ignorowanie SIGUSR1
+raise: SIGUSR1...
+jestem sobie exec i robie raise: SIGUSR1...
+ja to (PID)69250
+ustawiam maske i handler na SIGUSR1
+raise: SIGUSR1...
+(PID)69250 sygnał SIGUSR1 czeka do obebrania
+
+(PID) 69250 Otrzymałem: SIGUSR1 
+raise jako potomek (PID)69251 SIGUSR1...
+(PID)69251 sygnał SIGUSR1 czeka do obebrania
+
+(PID) 69251 Otrzymałem: SIGUSR1 
+ja to (PID)69250
+ustawiam maske i handler na SIGUSR1
+raise: SIGUSR1...
+(PID)69250 sygnał SIGUSR1 czeka do obebrania
+
+(PID) 69250 Otrzymałem: SIGUSR1 
+--------------------
+
+Proces potomny dziedziczy maskę i ustawienia obsługi sygnałów. Natomiast nieobsłużone zablokowane sygnały nie zostają przekazane do procesu potomnego
+Po użyciu funkcji exec uruchomiony proces dziedziczy ustawienia blokady sygnałów oraz sygnały oczekujące na odebranie

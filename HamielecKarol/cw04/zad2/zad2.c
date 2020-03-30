@@ -80,6 +80,12 @@ int main(int argc, char** argv){
         sigaddset(&new_set, cfg.signum);
         sigprocmask(SIG_SETMASK, &new_set, NULL);
     }else if(!strcmp(cfg.opt, "pending")){
+        printf("ustawiam maske i handler na %s\r\n", cfg.sig);
+        signal(cfg.signum, sig_handler);   
+        sigset_t new_set;
+        sigemptyset(&new_set);
+        sigaddset(&new_set, cfg.signum);
+        sigprocmask(SIG_SETMASK, &new_set, NULL);      
     
     }
 
@@ -101,13 +107,11 @@ int main(int argc, char** argv){
     if(cfg.mode == FORK_MODE){
         int childpid = fork();
         if(childpid == 0){
-            printf("raise jako potomek (PID)%d %s...\r\n", (int)getpid(), cfg.sig);
-            raise(cfg.signum);
-            if(!strcmp(cfg.opt, "mask")){
-                sigset_t check_set;
-                sigpending(&check_set);
-                // int sigismember ( sigset_t *signal_set, int sig_no );
-                if(!strcmp(cfg.opt, "mask")){
+            if(strcmp(cfg.opt, "pending")){
+                raise(cfg.signum);
+                printf("raise jako potomek (PID)%d %s...\r\n", (int)getpid(), cfg.sig);
+            }
+            if(!strcmp(cfg.opt, "mask") || !strcmp(cfg.opt, "pending")){
                     sigset_t check_set;
                     sigemptyset(&check_set);
                     sigpending(&check_set);
@@ -117,14 +121,13 @@ int main(int argc, char** argv){
                         sigemptyset(&newmask);
                         sigsuspend(&newmask);
                     }
-                }
             }
             exit(0);
         }
         childpid = wait(NULL);
         // printf("dziecko skończyło (PID)%d", childpid);
     }else{
-        printf("bedzie raise jako exec %s...\r\n", cfg.sig);
+        // printf("bedzie raise jako exec %s...\r\n", cfg.sig);
         execl("./exec_child", "exec_child", cfg.sig, NULL);
     }
 

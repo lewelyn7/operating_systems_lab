@@ -1,5 +1,5 @@
 #!/bin/bash
-dirs=`find ./HamielecKarol -name cw* | tail -1`
+dirs=`find ./HamielecKarol -name cw* | sort | tail -1`
 lastdir=`basename $dirs`
 number=${lastdir: -2}
 number=$(($number + 1))

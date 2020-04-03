@@ -1,4 +1,4 @@
-#define podpunkt_B
+// #define podpunkt_B
 #define _POSIX_C_SOURCE 200809L
 // #define _XOPEN_SOURCE_EXTENDED
 #include <stdio.h>

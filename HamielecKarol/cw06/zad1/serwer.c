@@ -21,10 +21,6 @@ struct clients{
 
 
 
-struct msgbuf {
-    long mtype;       /* message type, must be > 0 */
-    char mtext[MTEXT_SIZE];    /* message data */
-};
 
 int main(int argc, char ** argv){
 
@@ -52,7 +48,7 @@ int main(int argc, char ** argv){
     while(1){
 
         printf("czekam...\n");
-        size_received = msgrcv(qID, &messbuff, MTEXT_SIZE, 0, 0);
+        size_received = msgrcv(qID, &messbuff, MSG_SIZE, 0, 0);
         if(size_received > 0){
             if(messbuff.mtype == INIT){
                 if(clids.next_id < MAX_NUMBER_OF_CLIENTS){
@@ -74,7 +70,7 @@ int main(int argc, char ** argv){
                     
                     sprintf(messbuff.mtext, "%d", clids.next_id);
                     
-                     if (msgsnd(clids.id[clids.next_id].qID, &messbuff, MTEXT_SIZE, 0) < 0){
+                     if (msgsnd(clids.id[clids.next_id].qID, &messbuff, MSG_SIZE, 0) < 0){
                          perror("blad wysylania");
                      }
                     clids.next_id++;                    
@@ -87,17 +83,38 @@ int main(int argc, char ** argv){
 
             }else if( messbuff.mtype == LIST){
                 for(int i =0; i < clids.next_id; i++){
-                    printf("ID: %d, key: %d, qID: %d, availability: %d\n", i, (int)clids.id[i].key, clids.id[i].qID, clids.id[i].available);
+                    printf("ID: %d, key: %d, qID: %d, availability: %d\n deleted: %d", i, (int)clids.id[i].key, clids.id[i].qID, clids.id[i].available, clids.id[i].deleted);
                 }
             }else if( messbuff.mtype == CONNECT){
+                clids.id[messbuff.who].available = 0;
+                clids.id[messbuff.connect_to].available = 0;
+                printf("lacze %d do %d \n", messbuff.who, messbuff.connect_to);
+
+                messbuff.key = clids.id[messbuff.connect_to].key;
+
+                messbuff.mtype = CONNECT;
+                if(msgsnd(clids.id[messbuff.who].qID,&messbuff, MSG_SIZE, 0) == -1){
+                    perror("blad wyslania komunikatu do");
+                    printf("%d", messbuff.who);
+                    exit(-1);
+                }                
+
+                messbuff.key = clids.id[messbuff.who].key;
+                messbuff.mtype = CONNECT;
+                if(msgsnd(clids.id[messbuff.connect_to].qID,&messbuff, MSG_SIZE, 0) == -1){
+                    perror("blad wyslania komunikatu do");
+                    printf("%d", messbuff.connect_to);
+                    exit(-1);
+                } 
+                printf("wyslalem polaczenia\n");
 
             }else if(messbuff.mtype == DISCONNECT){
-
+                printf("disconnect client %d\n", messbuff.who);
+                clids.id[messbuff.who].available = 1;
             }else if(messbuff.mtype == STOP){
-                int rcv_id;
-                sscanf(messbuff.mtext, "%d", &rcv_id);
-                msgctl(clients.id[rcv_id], IPC_RMID, &buff);
-                clients.id[rcv_id].deleted = 1;
+                printf("clearing client %d\n", messbuff.who);
+                msgctl(clids.id[messbuff.who].qID, IPC_RMID, &buff);
+                clids.id[messbuff.who].deleted = 1;
             }
         }
     }

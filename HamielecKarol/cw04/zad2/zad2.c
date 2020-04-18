@@ -41,6 +41,8 @@ void sig_handler(int num){
 }
 
 int main(int argc, char** argv){
+
+
     printf("ja to (PID)%d\r\n", (int)getpid());
     struct config cfg;
 

@@ -12,12 +12,7 @@
 #include <signal.h>
 #include "common.h"
 
-struct msgbuf {
-    long mtype;       /* message type, must be > 0 */
-    char mtext[MTEXT_SIZE];    /* message data */
-    
-};
-
+int myidonsrv;
 int myqID;
 int srvqID;
 struct msgbuf messbuff;
@@ -25,18 +20,63 @@ struct msgbuf messbuff;
 void sig_handler(int num){
     printf("Otrzymałem: %d", num);
     struct msqid_ds buff;
+    
     messbuff.mtype = STOP;
-    if(msgsnd(srvqID, &messbuff, MTEXT_SIZE, 0) == -1){
+    messbuff.who = myidonsrv;
+    if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
         perror("blad wyslania komunikatu stopu");
     }
     msgctl(myqID, IPC_RMID, &buff);
     exit(0);
 }
 
+
+void chat_mode(int chatqID, int mode){
+        if(mode == 1){
+            printf("czekam na msg..\n");
+            msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0);
+            if(messbuff.mtype == DISCONNECT){
+                messbuff.who = myidonsrv;
+                msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+                printf("disconnected\n");
+                return;
+            }
+            printf("odpowiedz: %s \n", messbuff.mtext);            
+        }
+        while(1){
+        printf("podaj message: ");
+        messbuff.mtype = CHAT;
+        scanf("%s", messbuff.mtext);
+        if(!strcmp(messbuff.mtext, "DISCONNECT")){
+            printf("disconnected\n");
+            messbuff.mtype = DISCONNECT;
+            messbuff.who = myidonsrv;
+            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            msgsnd(chatqID, &messbuff, MSG_SIZE, 0);
+            return;
+
+        }
+        messbuff.who = myidonsrv;
+        if(msgsnd(chatqID, &messbuff, MSG_SIZE, 0) == -1){
+            perror("blad wysylania");
+        }
+        
+        printf("wyslano czekam na odpowiedz\n");
+        msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0);
+        if(messbuff.mtype == DISCONNECT){
+            messbuff.who = myidonsrv;
+            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            printf("disconnected\n");
+            return;
+        }
+        printf("odpowiedz: %s \n", messbuff.mtext);
+
+    }
+}
+
 int main(int argc, char ** argv){
 
     const char * home = getenv("HOME");
-    int myidonsrv;
     struct msqid_ds buff;
     signal(SIGINT, sig_handler);
     key_t mykey = ftok(home, (int)getpid()%256);
@@ -59,17 +99,20 @@ int main(int argc, char ** argv){
     
     messbuff.mtype = INIT;
     sprintf(messbuff.mtext, "%d", mykey);
+    messbuff.who = mykey;
     printf("wysylam moj klucz %s\n", messbuff.mtext);
-    if(msgsnd(srvqID, &messbuff, MTEXT_SIZE, 0) == -1){
+    messbuff.who = myidonsrv;
+    if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
         perror("blad wyslania komunikatu");
         exit(-1);
     }
    
     int size_received = 0;
-    size_received = msgrcv(myqID, &messbuff, MTEXT_SIZE, 0, 0);
+    size_received = msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0);
     if(size_received > 0){
         sscanf(messbuff.mtext, "%d", &myidonsrv);
         printf("odebralem id: %d\n", myidonsrv);
+        messbuff.who = myidonsrv;
 
     }
     char scanfbuff[32];
@@ -78,7 +121,8 @@ int main(int argc, char ** argv){
         if(!strcmp("LIST", scanfbuff)){
             printf("wysylam LIST...");
             messbuff.mtype = LIST;
-            if(msgsnd(srvqID, &messbuff, MTEXT_SIZE, 0) == -1){
+            messbuff.who = myidonsrv;
+            if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
                 printf("failed\n");
                 perror("error");
             }else{
@@ -91,12 +135,40 @@ int main(int argc, char ** argv){
             int connect_to;
             printf("connect to: ");
             scanf("%d", &connect_to);
-            char for_recovery[MTEXT_SIZE];
-            strcpy(for_recovery, messbuff.mtext);
-            strcat(messbuff.mtext, )
-            msgsnd(srvqID, messbuff, MTEXT_SIZE, 0);
-        }else if(!strcmp("DISCONNECT", scanfbuff)){
+            messbuff.connect_to = connect_to;
+            messbuff.mtype = CONNECT;
+            messbuff.who = myidonsrv;
+            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            if(msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0) > 0 && messbuff.mtype == CONNECT){
+                int chatqID = msgget(messbuff.key, 0);
+                if(chatqID == -1){
+                    perror("eroor otwierania chatu");
+                }
+                printf("otwieram chat_mode \n ");
+                chat_mode(chatqID, 0);
+                
+
+            }
             
+        }else if(!strcmp("CHAT", scanfbuff)){
+            printf("otwieram chat_mode \n ");
+            if(msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0) == -1){
+                perror("errror cahtmode");
+            }
+            
+            if(messbuff.mtype == CONNECT){
+                printf("otwieram chat\n");
+                int chatqID = msgget(messbuff.key, 0);
+                if(chatqID == -1){
+                    perror("eroor otwierania chatu");
+                }                
+                chat_mode(chatqID, 1);
+            }
+
+            
+        }else{
+
+
         }
     }
 

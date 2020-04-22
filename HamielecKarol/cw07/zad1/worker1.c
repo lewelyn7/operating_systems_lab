@@ -10,7 +10,7 @@ int get_order(){
 }
 
 void put_order(struct fifo_arr *fifo, int val){
-
+    pid_time_print();
     printf("(PID)%d próbuje dodac na tasme 1\n", (int)getpid());
     struct sembuf sops[3];
 
@@ -36,7 +36,9 @@ void put_order(struct fifo_arr *fifo, int val){
     put_to_fifo(fifo, val);
     int do_przygotowania = fifo->size - get_sem_value(semID, 2);
     int do_wyslania = fifo->size - get_sem_value(semID, 3);
-    printf("(PID)%d Dodałem liczbę : %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d\n", (int)getpid(), val, do_przygotowania, do_wyslania);
+    
+    pid_time_print();
+    printf("Dodałem liczbę : %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d\n", val, do_przygotowania, do_wyslania);
 
 
     sops[2].sem_op = 1;

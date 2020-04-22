@@ -6,8 +6,17 @@
 int semID;
 int shmID;
 
+
+void exit_func(void){
+
+    remove_sem(semID);
+    remove_shm(shmID);
+
+}
+
 int main(int argc, char ** argv){
     printf("mother PID: %d\n", (int)getpid());
+    atexit(exit_func);
 
     if(argc != 4){
         perror("blad argumentow");
@@ -25,6 +34,7 @@ int main(int argc, char ** argv){
     fifoptr->size = ARR_SIZE;
     fifoptr->head = 0;
     fifoptr->tail = 0;
+    fifoptr->empty = 1;
 
     sem_set_val(semID, 0, 1);
     sem_set_val(semID, 1, 1);
@@ -32,7 +42,7 @@ int main(int argc, char ** argv){
     sem_set_val(semID, 3, fifoptr->size);
     sem_set_val(semID, 4, 0);
     sem_set_val(semID, 5, 0);
-    pause();
+    // pause();
     int work1num;
     int work2num;
     int work3num;
@@ -40,11 +50,35 @@ int main(int argc, char ** argv){
     sscanf(argv[1], "%d",&work1num);
     sscanf(argv[2], "%d", &work2num);
     sscanf(argv[3], "%d", &work3num);
+
+
     for(int i = 0; i < work1num; i++){
         printf("tworze worker1 nr %d\n", i);
         int child = fork();
         if(child == 0){
             execl("./worker1.out","./worker1.out", NULL);
+            exit(-1);
+        }
+
+    }
+
+    for(int i = 0; i < work2num; i++){
+        printf("tworze worker2 nr %d\n", i);
+        int child = fork();
+        if(child == 0){
+            execl("./worker2.out","./worker2.out", NULL);
+            exit(-1);
+        }
+
+    }
+
+    for(int i = 0; i < work3num; i++){
+        printf("tworze worker3 nr %d\n", i);
+        int child = fork();
+        if(child == 0){
+            execl("./worker3.out","./worker3.out", NULL);
+            exit(-1);
+            
         }
 
     }

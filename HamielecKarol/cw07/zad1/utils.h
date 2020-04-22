@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define ARR_SIZE 10
+#define ARR_SIZE 5
 #define SLEEP_TIME 3
 
 union semun {
@@ -28,6 +28,7 @@ struct fifo_arr{
     int head;
     int tail;
     int size;
+    char empty;
 };
 /* sem0 - tasma miedzy worker 1 a 2
  * sem1 - tasma miedzy worker 2 a 3
@@ -111,19 +112,33 @@ int put_to_fifo(struct fifo_arr *fifo, int value){
         
     }
     fifo->head = (fifo->head + 1)%fifo->size;
+    if(fifo->empty == 1){
+        fifo->empty = 0;
+        fifo->head--;
+    }
     fifo->val[fifo->head] = value;
     return 0;
+}
+void pid_time_print(){
+    printf("PID:%d T:%d ", (int)getpid(), 0);
 }
 
 int get_from_fifo(struct fifo_arr *fifo){
 
-    if(fifo->tail > fifo->head){
-        printf("pusto przeciez");
-        return -1;
+    if(fifo->tail == fifo->head){
+        if(fifo->empty == 1){
+            printf("pusto przeciez");
+            return -1;            
+        }else{
+            fifo->empty = 1;
+            return fifo->val[fifo->tail-1];            
+        }
+
     }
     
     fifo->tail++;
-    return fifo->val[fifo->tail-1];
+    return fifo->val[fifo->tail-1];            
+
 
 }
 

@@ -29,9 +29,9 @@ int get_order(struct fifo_arr *fifo){
     sops[2].sem_flg = 0;
 
     sem_operations(semID, sops, 2); // blokada
-    printf("ok jest miejsce\n");
+    // printf("ok jest miejsce\n");
     sem_operations(semID, &sops[2], 1);
-    printf("przetwarzam...\n");
+    // printf("przetwarzam...\n");
     return_value = get_from_fifo(fifo);
     printf("odebralem z tasmy 1: %d\n", return_value);
 
@@ -44,7 +44,7 @@ int get_order(struct fifo_arr *fifo){
 
 
 void put_order(struct fifo_arr *fifo, int val){
-
+    pid_time_print();
     printf("próbuje dodac na tasme 2\n");
 
     struct sembuf sops[3];
@@ -68,6 +68,7 @@ void put_order(struct fifo_arr *fifo, int val){
     put_to_fifo(fifo, val);
     int do_przygotowania = get_sem_value(semID, 4);
     int do_wyslania = get_sem_value(semID, 5);
+    pid_time_print();
     printf("Przygotowałem liczbę : %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d\n", val, do_przygotowania, do_wyslania);
 
 
@@ -79,6 +80,7 @@ void put_order(struct fifo_arr *fifo, int val){
 }
 
 int main(){
+
     printf("worker2 PID: %d\n", (int)getpid());
 
     key_t sem_key;

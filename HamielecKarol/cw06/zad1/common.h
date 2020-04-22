@@ -1,8 +1,8 @@
-#define LIST 5
-#define CONNECT 1
+#define LIST 3
+#define CONNECT 4
 #define DISCONNECT 2
-#define STOP 3
-#define INIT 4
+#define STOP 1
+#define INIT 5
 #define MSG_SIZE 32
 #define CHAT 6
 

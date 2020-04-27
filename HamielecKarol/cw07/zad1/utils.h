@@ -17,7 +17,7 @@
  
 
 
-#define ARR_SIZE 5
+#define ARR_SIZE 10
 #define SLEEP_TIME 3
 
 long long current_timestamp() {
@@ -152,13 +152,12 @@ int get_from_fifo(struct fifo_arr *fifo){
     int val = fifo->val[fifo->tail];
     fifo->tail = (fifo->tail+1)%fifo->size;
     if(fifo->tail == (fifo->head+1)%fifo->size){
-        printf("\033[31m kolejka opróźniona \n \033[37m");
+        // printf("\033[31m kolejka opróźniona \n \033[37m");
         fifo->head = -1;
         fifo->tail = -1;
     }
     // printf("zabrano z kolejki, teraz H:%d T:%d", fifo->head, fifo->tail);
     return val;
-
 
 }
 

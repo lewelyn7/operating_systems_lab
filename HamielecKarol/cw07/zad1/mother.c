@@ -59,7 +59,7 @@ int main(int argc, char ** argv){
     sem_set_val(semID, 3, fifoptr2->size);
     sem_set_val(semID, 4, 0);
     sem_set_val(semID, 5, 0);
-    pause();
+    // pause();
     int work1num;
     int work2num;
     int work3num;

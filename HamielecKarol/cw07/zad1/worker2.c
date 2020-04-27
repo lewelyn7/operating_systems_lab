@@ -2,11 +2,12 @@
 
 int semID;
 int shmID;
+int shmID2;
 
 
 int get_order(struct fifo_arr *fifo){
     
-    printf("próbuje odebrac z tasmy 1\n");
+    // printf("próbuje odebrac z tasmy 1\n");
 
     int return_value;
 
@@ -28,15 +29,15 @@ int get_order(struct fifo_arr *fifo){
     sops[2].sem_op = -1;
     sops[2].sem_flg = 0;
 
-    sem_operations(semID, sops, 2); // blokada
+    sem_operations(semID, sops, 3); // blokada
     // printf("ok jest miejsce\n");
-    sem_operations(semID, &sops[2], 1);
+    // sem_operations(semID, &sops[2], 1);
     // printf("przetwarzam...\n");
     return_value = get_from_fifo(fifo);
-    printf("odebralem z tasmy 1: %d\n", return_value);
+    // printf("odebralem z tasmy 1: %d\n", return_value);
 
     sops[2].sem_op = 1;
-    sem_operations(semID, &sops[2], 1); // odblokowanie
+    sem_operations(semID, &(sops[2]), 1); // odblokowanie
 
     return return_value;
 
@@ -44,8 +45,8 @@ int get_order(struct fifo_arr *fifo){
 
 
 void put_order(struct fifo_arr *fifo, int val){
-    pid_time_print();
-    printf("próbuje dodac na tasme 2\n");
+    // pid_time_print();
+    // printf("próbuje dodac na tasme 2\n");
 
     struct sembuf sops[3];
 
@@ -80,23 +81,28 @@ void put_order(struct fifo_arr *fifo, int val){
 }
 
 int main(){
+    atexit(exit_fun);
+    signal(SIGINT, sig_handler);
 
     printf("worker2 PID: %d\n", (int)getpid());
 
     key_t sem_key;
     key_t shm_key;
-    init(&sem_key, &shm_key);
+    key_t shm2_key;
+    init(&sem_key, &shm_key, &shm2_key);
 
     
     semID = create_sem_set(sem_key, 0, 0);
     
     shmID = create_shm(shm_key, 0, 0);
+    shmID2 = create_shm(shm2_key, 0, 0);
     struct fifo_arr * fifoptr = include_shm(shmID, NULL, 0);
+    struct fifo_arr * fifoptr2 = include_shm(shmID2, NULL, 0);
     
     while(1){
         int val = get_order(fifoptr);
 
-        put_order(fifoptr, val*2);
+        put_order(fifoptr2, val*2);
  
         sleep(rand()%SLEEP_TIME);
 

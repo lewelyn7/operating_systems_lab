@@ -107,7 +107,7 @@ int main(int argc, char ** argv){
     const char * home = "/XDSDFSDFS";
 
     struct mq_attr attry;
-    attry.mq_flags = 0;
+    attry.mq_flags = O_NONBLOCK;
     attry.mq_maxmsg = 8;
     attry.mq_msgsize = MSG_SIZE;
 
@@ -120,6 +120,7 @@ int main(int argc, char ** argv){
     // key_t my_key = ftok(home, 2);
     // myqID = msgget(my_key, IPC_CREAT | IPC_EXCL | S_IRWXU); 
     myqID = mq_open(my_key, O_CREAT | O_RDONLY | O_EXCL, 0666, &attry);
+    // mq_setattr(myqID, &attry, NULL);
     if(myqID == -1){
         perror("error kolejki mojej");
         exit(-1);
@@ -170,7 +171,7 @@ int main(int argc, char ** argv){
             }else{
                 printf("sukces\n");
             }
-            
+            continue;
         }else if(!strcmp("STOP", scanfbuff)){
             sig_handler(2);
         }else if(!strcmp("CONNECT", scanfbuff)){

@@ -3,6 +3,8 @@
 int semID;
 int shmID;
 
+//TODO PRIINT TIMESTAMP I WYCZYSCIC PRINTY
+
 int get_order(){
     int randnum = rand();
     if(randnum < 0) randnum *= -1;
@@ -10,8 +12,8 @@ int get_order(){
 }
 
 void put_order(struct fifo_arr *fifo, int val){
-    pid_time_print();
-    printf("(PID)%d próbuje dodac na tasme 1\n", (int)getpid());
+    // pid_time_print();
+    // printf("(PID)%d próbuje dodac na tasme 1\n", (int)getpid());
     struct sembuf sops[3];
 
     //informacja ze zabieram miejsce
@@ -42,19 +44,22 @@ void put_order(struct fifo_arr *fifo, int val){
 
 
     sops[2].sem_op = 1;
-    sem_operations(semID, &sops[2], 1); // odblokowanie  tablicy
+    sem_operations(semID, &(sops[2]), 1); // odblokowanie  tablicy
 
 
 
 }
 
 int main(){
-
+    atexit(exit_fun);
+    signal(SIGINT, sig_handler);
+    
     printf("worker1 PID: %d\n", (int)getpid());
     srand(time(NULL));
     key_t sem_key;
     key_t shm_key;
-    init(&sem_key, &shm_key);
+    key_t shm2_key;
+    init(&sem_key, &shm_key, &shm2_key);
 
     semID = create_sem_set(sem_key, 0, 0);
     

@@ -23,7 +23,7 @@ void clean_up(){
     
     messbuff.mtype = STOP;
     messbuff.who = myidonsrv;
-    if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
+    if(msgsnd(srvqID, &messbuff, MSG_SIZE, -10) == -1){
         perror("blad wyslania komunikatu stopu");
         
     }
@@ -43,7 +43,7 @@ void chat_mode(int chatqID, int mode){
             msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0);
             if(messbuff.mtype == DISCONNECT){
                 messbuff.who = myidonsrv;
-                msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+                msgsnd(srvqID, &messbuff, MSG_SIZE, -10);
                 printf("disconnected\n");
                 return;
             }
@@ -57,7 +57,7 @@ void chat_mode(int chatqID, int mode){
             printf("disconnected\n");
             messbuff.mtype = DISCONNECT;
             messbuff.who = myidonsrv;
-            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            msgsnd(srvqID, &messbuff, MSG_SIZE, -10);
             msgsnd(chatqID, &messbuff, MSG_SIZE, 0);
             return;
 
@@ -71,7 +71,7 @@ void chat_mode(int chatqID, int mode){
         msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0);
         if(messbuff.mtype == DISCONNECT){
             messbuff.who = myidonsrv;
-            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            msgsnd(srvqID, &messbuff, MSG_SIZE, -10);
             printf("disconnected\n");
             return;
         }
@@ -111,7 +111,7 @@ int main(int argc, char ** argv){
     messbuff.who = mykey;
     printf("wysylam moj klucz %s\n", messbuff.mtext);
     messbuff.who = myidonsrv;
-    if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
+    if(msgsnd(srvqID, &messbuff, MSG_SIZE, -10) == -1){
         perror("blad wyslania komunikatu");
         exit(-1);
     }
@@ -132,7 +132,7 @@ int main(int argc, char ** argv){
             printf("wysylam LIST...");
             messbuff.mtype = LIST;
             messbuff.who = myidonsrv;
-            if(msgsnd(srvqID, &messbuff, MSG_SIZE, 0) == -1){
+            if(msgsnd(srvqID, &messbuff, MSG_SIZE, -10) == -1){
                 printf("failed\n");
                 perror("error");
             }else{
@@ -148,7 +148,7 @@ int main(int argc, char ** argv){
             messbuff.connect_to = connect_to;
             messbuff.mtype = CONNECT;
             messbuff.who = myidonsrv;
-            msgsnd(srvqID, &messbuff, MSG_SIZE, 0);
+            msgsnd(srvqID, &messbuff, MSG_SIZE, -10);
             if(msgrcv(myqID, &messbuff, MSG_SIZE, 0, 0) > 0 && messbuff.mtype == CONNECT){
                 int chatqID = msgget(messbuff.key, 0);
                 if(chatqID == -1){

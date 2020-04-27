@@ -11,9 +11,28 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <signal.h>
+
+ 
+
 
 #define ARR_SIZE 5
 #define SLEEP_TIME 3
+
+long long current_timestamp() {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    // printf("milliseconds: %lld\n", milliseconds);
+    return milliseconds;
+}
+void exit_fun(){
+    printf("\33[31m aaa zabili mnie %d \n \33[37m", (int)getpid());
+}
+void sig_handler(int num){
+    exit(0);
+}
 
 union semun {
                int              val;    /* Value for SETVAL */
@@ -28,7 +47,6 @@ struct fifo_arr{
     int head;
     int tail;
     int size;
-    char empty;
 };
 /* sem0 - tasma miedzy worker 1 a 2
  * sem1 - tasma miedzy worker 2 a 3
@@ -40,10 +58,11 @@ struct fifo_arr{
 
 
 
-void init(key_t * sem_key, key_t *shm_key){
+void init(key_t * sem_key, key_t *shm_key, key_t *shm2_key){
     const char * home = getenv("HOME");
     *sem_key = ftok(home,'a');
     *shm_key = ftok(home, 'b');    
+    *shm2_key = ftok(home, 'c');    
 }
 
 int create_sem_set(key_t key, int nsems, int flag){
@@ -107,37 +126,38 @@ int put_to_fifo(struct fifo_arr *fifo, int value){
 
     if((fifo->head + 1)%fifo->size == fifo->tail){
         //zjadanie ogona
-        printf("chcesz zjesc ogon?");
+        printf("\033[31m chcesz zjesc ogon H:%d T:%d?\n \033[37m", fifo->head, fifo->tail);
         return (-1);
         
     }
-    fifo->head = (fifo->head + 1)%fifo->size;
-    if(fifo->empty == 1){
-        fifo->empty = 0;
-        fifo->head--;
+    if(fifo->tail == -1){
+        fifo->tail++;
     }
+    fifo->head = (fifo->head + 1)%fifo->size;
     fifo->val[fifo->head] = value;
+    // printf("wlozono do kolejki, teraz H:%d T:%d ", fifo->head, fifo->tail);
+
     return 0;
 }
 void pid_time_print(){
-    printf("PID:%d T:%d ", (int)getpid(), 0);
+    printf("PID:%d T:%lld ", (int)getpid(), current_timestamp());
 }
 
 int get_from_fifo(struct fifo_arr *fifo){
 
-    if(fifo->tail == fifo->head){
-        if(fifo->empty == 1){
-            printf("pusto przeciez");
-            return -1;            
-        }else{
-            fifo->empty = 1;
-            return fifo->val[fifo->tail-1];            
-        }
-
+    if(fifo->head == -1){
+        printf("\033[31m kolejka pusta \n \033[37m");
+        return (-1);       
     }
-    
-    fifo->tail++;
-    return fifo->val[fifo->tail-1];            
+    int val = fifo->val[fifo->tail];
+    fifo->tail = (fifo->tail+1)%fifo->size;
+    if(fifo->tail == (fifo->head+1)%fifo->size){
+        printf("\033[31m kolejka opróźniona \n \033[37m");
+        fifo->head = -1;
+        fifo->tail = -1;
+    }
+    // printf("zabrano z kolejki, teraz H:%d T:%d", fifo->head, fifo->tail);
+    return val;
 
 
 }

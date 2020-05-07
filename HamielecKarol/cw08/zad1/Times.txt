@@ -1,0 +1,144 @@
+for num in 1 2 4 8; do \
+echo ""; echo ""; echo "liczba watkow: $num"; echo ""; echo "";\
+echo "interleaved:";\
+./zad1.out $num interleaved balloons_noisy.ascii.pgm out_inter.pgm; \
+echo "block:";\
+./zad1.out $num block balloons_noisy.ascii.pgm out_block.pgm; \
+echo "sign:";\
+./zad1.out $num sign balloons_noisy.ascii.pgm out_sign.pgm; \
+done
+
+
+liczba watkow: 1
+
+
+interleaved:
+tworze thread: 851916544
+Thread: 851916544 time: 5372 
+czas calkowity: 5490
+block:
+tworze thread: -1883515136
+Thread: -1883515136 time: 5323 
+czas calkowity: 5453
+sign:
+tworze thread: -1704106240
+Thread: -1704106240 time: 163661 
+czas calkowity: 163784
+
+
+liczba watkow: 2
+
+
+interleaved:
+tworze thread: 1748928256
+tworze thread: 1740535552
+Thread: 1748928256 time: 19706 
+Thread: 1740535552 time: 20412 
+czas calkowity: 20555
+block:
+tworze thread: -1827322112
+tworze thread: -1835714816
+Thread: -1827322112 time: 24218 
+Thread: -1835714816 time: 24118 
+czas calkowity: 24332
+sign:
+tworze thread: 220276480
+tworze thread: 211883776
+Thread: 220276480 time: 76699 
+Thread: 211883776 time: 76327 
+czas calkowity: 76835
+
+
+liczba watkow: 4
+
+
+interleaved:
+tworze thread: 445110016
+tworze thread: 436717312
+tworze thread: 428324608
+tworze thread: 419931904
+Thread: 445110016 time: 21724 
+Thread: 436717312 time: 31077 
+Thread: 428324608 time: 21284 
+Thread: 419931904 time: 30795 
+czas calkowity: 31288
+block:
+tworze thread: -1901693184
+tworze thread: -1910085888
+tworze thread: -1918478592
+tworze thread: -1926871296
+Thread: -1901693184 time: 22574 
+Thread: -1910085888 time: 21684 
+Thread: -1918478592 time: 22690 
+Thread: -1926871296 time: 22649 
+czas calkowity: 22842
+sign:
+tworze thread: -2067032320
+tworze thread: -2075425024
+tworze thread: -2083817728
+tworze thread: -2092210432
+Thread: -2067032320 time: 38440 
+Thread: -2075425024 time: 40678 
+Thread: -2083817728 time: 39123 
+Thread: -2092210432 time: 40395 
+czas calkowity: 40825
+
+
+liczba watkow: 8
+
+
+interleaved:
+tworze thread: -1295300864
+tworze thread: -1303693568
+tworze thread: -1312086272
+tworze thread: -1320478976
+tworze thread: -1328871680
+tworze thread: -1337264384
+tworze thread: -1345657088
+tworze thread: -1354049792
+Thread: -1295300864 time: 36040 
+Thread: -1303693568 time: 36636 
+Thread: -1312086272 time: 36004 
+Thread: -1320478976 time: 36073 
+Thread: -1328871680 time: 36589 
+Thread: -1337264384 time: 36212 
+Thread: -1345657088 time: 36000 
+Thread: -1354049792 time: 35962 
+czas calkowity: 36897
+block:
+tworze thread: 303515392
+tworze thread: 295122688
+tworze thread: 286729984
+tworze thread: 278337280
+tworze thread: 269944576
+tworze thread: 261551872
+tworze thread: 253159168
+tworze thread: 244766464
+Thread: 303515392 time: 39549 
+Thread: 295122688 time: 39857 
+Thread: 286729984 time: 38942 
+Thread: 278337280 time: 39882 
+Thread: 269944576 time: 39359 
+Thread: 261551872 time: 39868 
+Thread: 253159168 time: 39129 
+Thread: 244766464 time: 39573 
+czas calkowity: 40112
+sign:
+tworze thread: 108189440
+tworze thread: 99796736
+tworze thread: 91404032
+tworze thread: 83011328
+tworze thread: 74618624
+tworze thread: 66225920
+tworze thread: 57833216
+tworze thread: 49440512
+Thread: 108189440 time: 31009 
+Thread: 99796736 time: 31679 
+Thread: 91404032 time: 31890 
+Thread: 83011328 time: 31746 
+Thread: 74618624 time: 32089 
+Thread: 66225920 time: 31340 
+Thread: 57833216 time: 32076 
+Thread: 49440512 time: 35820 
+czas calkowity: 36111
+#sha1sum out_block.pgm out_inter.pgm out_sign.pgm

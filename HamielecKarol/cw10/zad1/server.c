@@ -149,7 +149,20 @@ int login_client(int sockid, struct epoll_event *evs){
     my_write(cls[sockid].fd, (const void *) &msg, sizeof(msg));
     return 1;
 }
+void delete_client(int sockid){
+    printf("usunieto klienta: %s\n", cls[sockid].login);
 
+    cls[sockid].free = 1;
+    cls[sockid].logged = 0;
+    if(cls[sockid].pair_id != -1 && cls[cls[sockid].pair_id].pair_id != -1){
+        struct ping msg;
+        msg.v = SHUTDOWN;
+        my_write(cls[cls[sockid].pair_id].fd, (const void*) &msg, sizeof(msg));
+    }
+    cls[sockid].pair_id = -1;
+    shutdown(cls[sockid].fd, SHUT_RDWR);
+    close(cls[sockid].fd);
+}
 void * ping_thread(void * arg){
 
     struct ping msg;
@@ -166,6 +179,7 @@ void * ping_thread(void * arg){
                     my_write(cls[i].fd, (const void *) &msg, sizeof(msg));
                 }else{
                     printf("client to deletion\n");
+                    delete_client(i);
                 }
             }
 
@@ -262,13 +276,14 @@ int main(int argc, char ** argv){
 
     struct epoll_event evs[CLIENT_MAX];
     int ev_rcv;
-    int bt_rcv;
-    struct ping pmsg;
-    int client_socket;
-    unsigned int size_struct = sizeof(net_sockaddr);
+    // int bt_rcv;
+    // struct ping pmsg;
+    // int client_socket;
+    // unsigned int size_struct = sizeof(net_sockaddr);
     while(1){
         ev_rcv = epoll_wait(epoll_fd, evs, 1, -1);
         printf("\nodebralem %d  zdarzen\n", ev_rcv);
+        pthread_mutex_lock(&lock);
 
         if(evs[0].data.fd == loc_socket || evs[0].data.fd == net_socket){
             add_new_client(evs, epoll_fd);
@@ -281,12 +296,7 @@ int main(int argc, char ** argv){
             }
 
             if(evs[0].events & EPOLLRDHUP){
-                printf("usunieto klienta: %s\n", cls[sockid].login);
-                shutdown(cls[sockid].fd, SHUT_RDWR);
-                close(cls[sockid].fd);
-                cls[sockid].free = 1;
-                cls[sockid].logged = 0;
-                cls[sockid].pair_id = -1;
+                delete_client(sockid);
             }else if(cls[sockid].logged == 0){
                 if(login_client(sockid, evs)){
                     pair_clients(sockid);
@@ -313,13 +323,10 @@ int main(int argc, char ** argv){
             }
             // sleep(1);
         }
+        pthread_mutex_unlock(&lock);
 
     }
-    // TODO sprawdzanie wolnych loginow
 
-    // TODO remis
-
-    // Sprawdzanie wolnych miejsc
 
 
 

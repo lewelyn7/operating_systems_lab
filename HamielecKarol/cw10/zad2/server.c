@@ -27,7 +27,6 @@ void exit_handler(){
         }
     }
 
-    shutdown(net_socket, SHUT_RDWR);
     close(loc_socket);
     close(net_socket);
     unlink(cfg.unipath);
@@ -79,7 +78,7 @@ void add_new_client(int client_socket, struct sockaddr * addr, int addrlen ){
         // }
 
         cls[id].addrsize = addrlen;
-        cls[id].addr = calloc(sizeof(*addr), 1);
+        cls[id].addr = calloc(addrlen, 1);
         *cls[id].addr = *addr;
 
         printf("dodaje....");
@@ -172,7 +171,18 @@ int login_client(int sockid, struct login msg){
     my_write(cls[sockid].fd, (const void *) &msg, sizeof(msg), 0, cls[sockid].addr, cls[sockid].addrsize);
     return 1;
 }
+void delete_client(int sockid){
+    printf("usunieto klienta: %s\n", cls[sockid].login);
+    cls[sockid].free = 1;
+    cls[sockid].logged = 0;
+    if(cls[sockid].pair_id != -1 && cls[cls[sockid].pair_id].pair_id != -1){
+        struct ping msg;
+        msg.v = SHUTDOWN;
+        my_write(cls[cls[sockid].pair_id].fd, (const void*) &msg, sizeof(msg), 0, cls[cls[sockid].pair_id].addr, cls[cls[sockid].pair_id].addrsize);
+    }
+    cls[sockid].pair_id = -1;
 
+}
 void * ping_thread(void * arg){
 
     struct ping msg;
@@ -188,7 +198,7 @@ void * ping_thread(void * arg){
                     cls[i].active =  0;
                     my_write(cls[i].fd, (const void *) &msg, sizeof(msg), 0, cls[i].addr, cls[i].addrsize);
                 }else{
-                    printf("client to deletion\n");
+                    delete_client(i);
                 }
             }
 
@@ -199,18 +209,19 @@ void * ping_thread(void * arg){
 
     return NULL;
 }
+
 int main(int argc, char ** argv){
     clear_cls(cls);
-
-
-    pthread_t thread_id;
-    pthread_create(&thread_id, NULL, ping_thread, NULL);
 
     //create mutex
     if(pthread_mutex_init (&lock, NULL) != 0){
         perror("blad tworzenia mutexa\n");
         exit(-1);
     }
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, ping_thread, NULL);
+
+
 
     atexit(exit_handler);
     signal(SIGINT, sig_handler);
@@ -285,73 +296,69 @@ int main(int argc, char ** argv){
 
     struct epoll_event evs[CLIENT_MAX];
     int ev_rcv;
-    int bt_rcv;
+    // int bt_rcv;
     struct ping pmsg;
     struct move mv;
-    int client_socket;
-    struct sockaddr_un unix_addr;
+    // int client_socket;
+    // struct sockaddr_un unix_addr;
     struct sockaddr net_addr;
-    struct sockaddr * ptr_addr;
+    // struct sockaddr * ptr_addr;
     unsigned int addrlen = sizeof(struct sockaddr);
 
 
-    unsigned int size_struct = sizeof(net_sockaddr);
+    // unsigned int size_struct = sizeof(net_sockaddr);
     while(1){
         ev_rcv = epoll_wait(epoll_fd, evs, 1, -1);
         printf("\nodebralem %d  zdarzen\n", ev_rcv);
+        pthread_mutex_lock(&lock);
 
             // add_new_client(evs, epoll_fd);
-            {
-                addrlen = sizeof(net_addr);
-                my_read(evs[0].data.fd, &mv, sizeof(mv), MSG_PEEK, &net_addr, &addrlen);
-                ptr_addr = (struct sockaddr * )&net_addr;
-            }
+
+            addrlen = sizeof(net_addr);
+            my_read(evs[0].data.fd, &mv, sizeof(mv), MSG_PEEK, &net_addr, &addrlen);
+            // ptr_addr = (struct sockaddr * )&net_addr; 
+            int sockid = mv.who;
             if(mv.who == NOBODY){
                 my_read(evs[0].data.fd, &pmsg, sizeof(pmsg), 0, &net_addr, &addrlen);
-                add_new_client(evs[0].data.fd, ptr_addr, addrlen);
-            }
-            int sockid = mv.who;
-            if(cls[sockid].logged == 0){
+                add_new_client(evs[0].data.fd, &net_addr, addrlen);
+            }else if(cls[sockid].logged == 0 && mv.place != SHUTDOWN){
                 struct login lmsg;
                 my_read(evs[0].data.fd, &lmsg, sizeof(lmsg), 0, &net_addr, &addrlen);
-                if(login_client(sockid, lmsg)){
+                if(login_client(sockid, lmsg) == 1){
                     pair_clients(sockid);
                 }
 
-
-            }
-
-            cls[sockid].active = 1;
-
-            my_read(evs[0].data.fd, &mv, sizeof(mv), 0, &net_addr, &addrlen);
-
-            if(evs[0].events & EPOLLRDHUP){
-                printf("usunieto klienta: %s\n", cls[sockid].login);
-                shutdown(cls[sockid].fd, SHUT_RDWR);
-                close(cls[sockid].fd);
-                cls[sockid].free = 1;
-                cls[sockid].logged = 0;
-                cls[sockid].pair_id = -1;
-            }else if(cls[sockid].pair_id != -1){ // 
-                printf("ruch...\n");
-                if(mv.flags == PONG){
-                    printf("PONG\n");
-                }else{
-                    my_write(cls[cls[sockid].pair_id].fd, (const void *) &mv, sizeof(mv), 0, cls[sockid].addr, cls[sockid].addrsize);
-                    if(mv.flags == YOU_WIN || mv.flags == YOU_LOOSE){
-                        printf("koniec gry\n");
-                    }                    
-                }
-
+                cls[sockid].active = 1;
             }else{
-                struct ping msg;
-                my_read(evs[0].data.fd, (void*) &msg, sizeof(msg), 0, cls[sockid].addr, &cls[sockid].addrsize);
-                if(msg.v == PONG){
-                    printf("PONG\n");
+
+                cls[sockid].active = 1;
+
+                my_read(evs[0].data.fd, &mv, sizeof(mv), 0, &net_addr, &addrlen);
+
+                if(evs[0].events & EPOLLRDHUP || mv.place == SHUTDOWN){
+                    delete_client(sockid);
+                }else if(cls[sockid].pair_id != -1){ // 
+                    printf("ruch...\n");
+                    if(mv.flags == PONG){
+                        printf("PONG\n");
+                    }else{
+                        my_write(cls[cls[sockid].pair_id].fd, (const void *) &mv, sizeof(mv), 0, cls[cls[sockid].pair_id].addr, cls[cls[sockid].pair_id].addrsize);
+                        if(mv.flags == YOU_WIN || mv.flags == YOU_LOOSE){
+                            printf("koniec gry\n");
+                        }                    
+                    }
+
+                }else{
+                    // struct ping msg;
+                    // my_read(evs[0].data.fd, (void*) &msg, sizeof(msg), 0, cls[sockid].addr, &cls[sockid].addrsize);
+                    if(mv.place == PONG){
+                        printf("PONG\n");
+                    }
                 }
             }
             // sleep(1);
-        
+        pthread_mutex_unlock(&lock);
+
 
     }
     // TODO

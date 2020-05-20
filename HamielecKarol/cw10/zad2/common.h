@@ -28,6 +28,7 @@ struct board{
 #define YOU_LOOSE 5
 #define YOU_WIN 4
 #define DRAW 7
+#define SHUTDOWN 98
 struct move{
     int place;
     int who;

@@ -40,6 +40,7 @@ struct move{
 #define START_GAME1 51
 #define START_GAME0 52
 #define WAITING_FOR_PLAYER 43
+#define SHUTDOWN 98
 struct ping{
     int v;
 };

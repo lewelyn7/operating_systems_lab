@@ -50,6 +50,8 @@ void start_game(int who){
                             struct move mvv;
                             mvv.flags = PONG;
                             my_write(sock_fd, (const void*) &mvv, sizeof(mvv));
+                        }else if(mv.place == SHUTDOWN){
+                            return;
                         }
                     }
                 }while(pmsg_size == byte_rcv);
@@ -97,6 +99,8 @@ void start_game(int who){
                             struct move mvv;
                             mvv.flags = PONG;
                             my_write(sock_fd, (const void*) &mvv, sizeof(mvv));                              
+                        }else if(pm.v == SHUTDOWN){
+                            return;
                         }
                     }
                 }while(ev1.data.fd != STDIN_FILENO);
